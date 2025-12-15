@@ -937,6 +937,34 @@ WebTerminal::make()
 | `identifier` | `string` | Custom identifier for filtering logs |
 | `metadata` | `array` | Custom metadata stored with each log entry |
 
+#### Standalone Metadata Method
+
+You can also set metadata separately using the `logMetadata()` method:
+
+```php
+// Set metadata independently from log configuration
+WebTerminal::make()
+    ->local()
+    ->log(enabled: true, commands: true)
+    ->logMetadata([
+        'user_id' => auth()->id(),
+        'tenant_id' => filament()->getTenant()?->id,
+        'context' => 'admin_panel',
+    ])
+
+// With Closure for dynamic resolution
+WebTerminal::make()
+    ->local()
+    ->log()
+    ->logMetadata(fn () => [
+        'user_id' => auth()->id(),
+        'user_email' => auth()->user()?->email,
+        'session_started_at' => now()->toIso8601String(),
+    ])
+```
+
+This is useful when you want to keep log settings separate from metadata, or when building configurations dynamically.
+
 ### Event Types
 
 The logger tracks these event types:

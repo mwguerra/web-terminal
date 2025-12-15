@@ -64,6 +64,16 @@ class TerminalBuilder
     protected array $logMetadata = [];
 
     /**
+     * Whether to disconnect on page navigation.
+     */
+    protected ?bool $disconnectOnNavigate = null;
+
+    /**
+     * Inactivity timeout in seconds.
+     */
+    protected ?int $inactivityTimeout = null;
+
+    /**
      * Set the connection configuration.
      *
      * @param  ConnectionType|string  $type
@@ -245,6 +255,55 @@ class TerminalBuilder
     }
 
     /**
+     * Set whether to disconnect when navigating away or refreshing the page.
+     *
+     * @return $this
+     */
+    public function disconnectOnNavigate(bool $enabled = true): static
+    {
+        $this->disconnectOnNavigate = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Disable automatic disconnect on page navigation.
+     *
+     * @return $this
+     */
+    public function keepConnectedOnNavigate(): static
+    {
+        $this->disconnectOnNavigate = false;
+
+        return $this;
+    }
+
+    /**
+     * Set the inactivity timeout in seconds.
+     * Set to 0 to disable auto-disconnect on inactivity.
+     *
+     * @return $this
+     */
+    public function inactivityTimeout(int $seconds): static
+    {
+        $this->inactivityTimeout = max(0, $seconds);
+
+        return $this;
+    }
+
+    /**
+     * Disable inactivity timeout (never auto-disconnect due to inactivity).
+     *
+     * @return $this
+     */
+    public function noInactivityTimeout(): static
+    {
+        $this->inactivityTimeout = 0;
+
+        return $this;
+    }
+
+    /**
      * Get the parameters for the component.
      *
      * @return array<string, mixed>
@@ -258,6 +317,8 @@ class TerminalBuilder
             'prompt' => $this->prompt,
             'historyLimit' => $this->historyLimit,
             'maxOutputLines' => $this->maxOutputLines,
+            'disconnectOnNavigate' => $this->disconnectOnNavigate,
+            'inactivityTimeout' => $this->inactivityTimeout,
         ], fn ($value) => $value !== null);
 
         // Always include logMetadata if set (even empty array is filtered above)
@@ -320,6 +381,14 @@ class TerminalBuilder
 
         if ($this->maxOutputLines !== null) {
             $params[':max-output-lines'] = $this->maxOutputLines;
+        }
+
+        if ($this->disconnectOnNavigate !== null) {
+            $params[':disconnect-on-navigate'] = $this->disconnectOnNavigate ? 'true' : 'false';
+        }
+
+        if ($this->inactivityTimeout !== null) {
+            $params[':inactivity-timeout'] = $this->inactivityTimeout;
         }
 
         $paramsString = collect($params)

@@ -66,6 +66,11 @@ class WebTerminal extends Livewire
 
     protected array|Closure $logMetadata = [];
 
+    // Session management configuration
+    protected bool|Closure|null $disconnectOnNavigate = null;
+
+    protected int|Closure|null $inactivityTimeout = null;
+
     public static function make(Closure|string $component = null, Closure|array $data = []): static
     {
         $static = app(static::class, [
@@ -114,6 +119,8 @@ class WebTerminal extends Livewire
             'logOutput' => $this->getLogOutput(),
             'logIdentifier' => $this->getLogIdentifier(),
             'logMetadata' => $this->getLogMetadata(),
+            'disconnectOnNavigate' => $this->getDisconnectOnNavigate(),
+            'inactivityTimeout' => $this->getInactivityTimeout(),
         ];
     }
 
@@ -810,6 +817,96 @@ class WebTerminal extends Livewire
     public function getLogMetadata(): array
     {
         return $this->evaluate($this->logMetadata);
+    }
+
+    // ========================================
+    // Session Management Configuration
+    // ========================================
+
+    /**
+     * Set whether to disconnect when navigating away or refreshing the page.
+     *
+     * When enabled (default), the terminal will automatically disconnect
+     * when the user navigates to another page or refreshes. This prevents
+     * orphaned tmux sessions.
+     *
+     * @param  bool|Closure  $enabled  Whether to disconnect on navigation (default: true)
+     */
+    public function disconnectOnNavigate(bool|Closure $enabled = true): static
+    {
+        $this->disconnectOnNavigate = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Disable automatic disconnect on page navigation.
+     *
+     * Use this if you want the terminal session to persist across page
+     * navigations (e.g., in SPA-like applications).
+     */
+    public function keepConnectedOnNavigate(): static
+    {
+        $this->disconnectOnNavigate = false;
+
+        return $this;
+    }
+
+    /**
+     * Get whether to disconnect on navigation.
+     *
+     * Returns null if not explicitly set (uses config default).
+     */
+    public function getDisconnectOnNavigate(): ?bool
+    {
+        $value = $this->disconnectOnNavigate;
+
+        if ($value === null) {
+            return null;
+        }
+
+        return $this->evaluate($value);
+    }
+
+    /**
+     * Set the inactivity timeout in seconds.
+     *
+     * The terminal will automatically disconnect after this period of
+     * inactivity (no commands or keystrokes). Set to 0 to disable.
+     *
+     * @param  int|Closure  $seconds  Timeout in seconds (0 = disabled, default: 3600 = 60 minutes)
+     */
+    public function inactivityTimeout(int|Closure $seconds): static
+    {
+        $this->inactivityTimeout = $seconds;
+
+        return $this;
+    }
+
+    /**
+     * Disable inactivity timeout (never auto-disconnect due to inactivity).
+     */
+    public function noInactivityTimeout(): static
+    {
+        $this->inactivityTimeout = 0;
+
+        return $this;
+    }
+
+    /**
+     * Get the inactivity timeout.
+     *
+     * Returns null if not explicitly set (uses config default).
+     */
+    public function getInactivityTimeout(): ?int
+    {
+        $value = $this->inactivityTimeout;
+
+        if ($value === null) {
+            return null;
+        }
+
+        return $this->evaluate($value);
     }
 }
 

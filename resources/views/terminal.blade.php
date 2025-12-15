@@ -10,6 +10,10 @@
         cooldownProgress: 0,
         cooldownAnimationFrame: null,
         cooldownStartTime: null,
+        disconnectOnNavigate: {{ $disconnectOnNavigate ? 'true' : 'false' }},
+        inactivityTimeout: {{ $inactivityTimeout }},
+        lastActivityTime: Date.now(),
+        inactivityCheckInterval: null,
         init() {
             if (this.isConnected) {
                 this.$refs.input.focus();
@@ -38,6 +42,9 @@
             this.$watch('isConnected', (value) => {
                 if (value) {
                     this.$nextTick(() => this.$refs.input.focus());
+                    this.startInactivityCheck();
+                } else {
+                    this.stopInactivityCheck();
                 }
             });
 
@@ -45,12 +52,75 @@
             if (this.isInteractive) {
                 this.startPolling();
             }
+
+            // Setup disconnect on page navigation/refresh
+            if (this.disconnectOnNavigate) {
+                window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
+                window.addEventListener('pagehide', this.handlePageHide.bind(this));
+            }
+
+            // Start inactivity check if already connected
+            if (this.isConnected && this.inactivityTimeout > 0) {
+                this.startInactivityCheck();
+            }
+        },
+        destroy() {
+            if (this.disconnectOnNavigate) {
+                window.removeEventListener('beforeunload', this.handleBeforeUnload.bind(this));
+                window.removeEventListener('pagehide', this.handlePageHide.bind(this));
+            }
+            this.stopInactivityCheck();
+        },
+        handleBeforeUnload(event) {
+            if (this.isConnected) {
+                // Call disconnect - Livewire will handle this best-effort
+                // For cases where the page unloads too fast, the ProcessSessionManager
+                // TTL cleanup will handle orphaned tmux sessions
+                $wire.disconnect();
+            }
+        },
+        handlePageHide(event) {
+            // pagehide fires on mobile browsers when navigating away
+            if (this.isConnected) {
+                $wire.disconnect();
+            }
+        },
+        recordActivity() {
+            this.lastActivityTime = Date.now();
+        },
+        startInactivityCheck() {
+            if (this.inactivityTimeout <= 0) return;
+
+            this.lastActivityTime = Date.now();
+            this.stopInactivityCheck();
+
+            // Check every minute
+            this.inactivityCheckInterval = setInterval(() => {
+                if (!this.isConnected) {
+                    this.stopInactivityCheck();
+                    return;
+                }
+
+                const idleTime = (Date.now() - this.lastActivityTime) / 1000;
+                if (idleTime >= this.inactivityTimeout) {
+                    $wire.disconnect();
+                    this.stopInactivityCheck();
+                }
+            }, 60000);
+        },
+        stopInactivityCheck() {
+            if (this.inactivityCheckInterval) {
+                clearInterval(this.inactivityCheckInterval);
+                this.inactivityCheckInterval = null;
+            }
         },
         handleToggle() {
             // Ignore clicks during cooldown
             if (this.cooldownActive) {
                 return;
             }
+            // Record activity
+            this.recordActivity();
             // Perform action immediately
             if (this.isConnected) {
                 $wire.disconnect();
@@ -111,6 +181,9 @@
             if (!this.isConnected) {
                 return;
             }
+
+            // Record activity on any keypress
+            this.recordActivity();
 
             // Ctrl+C to cancel process
             if (event.ctrlKey && event.key === 'c' && this.isInteractive) {

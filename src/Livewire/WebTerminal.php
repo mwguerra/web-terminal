@@ -191,6 +191,23 @@ class WebTerminal extends Component
     public int $maxOutputLines = 1000;
 
     // ========================================
+    // Session Management Configuration
+    // ========================================
+
+    /**
+     * Whether to disconnect when user navigates away or refreshes the page.
+     */
+    #[Locked]
+    public bool $disconnectOnNavigate = true;
+
+    /**
+     * Inactivity timeout in seconds (0 = disabled).
+     * Terminal will auto-disconnect after this period of inactivity.
+     */
+    #[Locked]
+    public int $inactivityTimeout = 3600;
+
+    // ========================================
     // Logging Configuration
     // ========================================
 
@@ -273,6 +290,8 @@ class WebTerminal extends Component
         ?bool $logOutput = null,
         ?string $logIdentifier = null,
         array $logMetadata = [],
+        ?bool $disconnectOnNavigate = null,
+        ?int $inactivityTimeout = null,
     ): void {
         // Set connection config
         if ($connection instanceof ConnectionConfig) {
@@ -345,6 +364,12 @@ class WebTerminal extends Component
         $this->logOutput = $logOutput;
         $this->logIdentifier = $logIdentifier;
         $this->logMetadata = $logMetadata;
+
+        // Set session management configuration
+        $this->disconnectOnNavigate = $disconnectOnNavigate
+            ?? config('web-terminal.session.disconnect_on_navigate', true);
+        $this->inactivityTimeout = $inactivityTimeout
+            ?? config('web-terminal.session.inactivity_timeout', 3600);
 
         // Initialize current directory
         // For remote connections, don't use local getcwd()

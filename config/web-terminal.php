@@ -133,6 +133,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Session Management
+    |--------------------------------------------------------------------------
+    |
+    | Configure terminal session behavior including automatic disconnection
+    | and inactivity timeout.
+    |
+    */
+    'session' => [
+        // Automatically disconnect when user navigates away or refreshes the page
+        // This prevents orphaned tmux sessions
+        'disconnect_on_navigate' => env('WEB_TERMINAL_DISCONNECT_ON_NAVIGATE', true),
+
+        // Inactivity timeout in seconds (0 = disabled)
+        // Default: 3600 seconds (60 minutes)
+        // Terminal will automatically disconnect after this period of inactivity
+        'inactivity_timeout' => env('WEB_TERMINAL_INACTIVITY_TIMEOUT', 3600),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Auditing
     |--------------------------------------------------------------------------
     |

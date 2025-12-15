@@ -702,6 +702,51 @@ WebTerminal::make()->connection($config)
 | `windowControls(bool)` | Show macOS-style window control dots | `true` |
 | `startConnected(bool)` | Auto-connect on page load | `false` |
 
+### Session Management
+
+Control how the terminal handles navigation and inactivity:
+
+| Method | Description | Default |
+|--------|-------------|---------|
+| `disconnectOnNavigate(bool)` | Disconnect when user navigates away or refreshes | `true` |
+| `keepConnectedOnNavigate()` | Disable auto-disconnect on navigation | - |
+| `inactivityTimeout(int)` | Auto-disconnect after N seconds of inactivity | `3600` (60 min) |
+| `noInactivityTimeout()` | Disable inactivity timeout | - |
+
+```php
+// Auto-disconnect after 30 minutes of inactivity
+WebTerminal::make()
+    ->local()
+    ->inactivityTimeout(1800)
+
+// Keep connection when navigating (useful for SPAs)
+WebTerminal::make()
+    ->local()
+    ->keepConnectedOnNavigate()
+
+// Disable inactivity timeout (never auto-disconnect)
+WebTerminal::make()
+    ->local()
+    ->noInactivityTimeout()
+```
+
+#### Session Configuration in Config File
+
+You can also configure these settings globally in `config/web-terminal.php`:
+
+```php
+'session' => [
+    // Automatically disconnect when user navigates away or refreshes
+    'disconnect_on_navigate' => env('WEB_TERMINAL_DISCONNECT_ON_NAVIGATE', true),
+
+    // Inactivity timeout in seconds (0 = disabled)
+    // Default: 3600 seconds (60 minutes)
+    'inactivity_timeout' => env('WEB_TERMINAL_INACTIVITY_TIMEOUT', 3600),
+],
+```
+
+The terminal tracks user activity (commands, keystrokes) and automatically disconnects after the configured timeout period. This helps prevent orphaned tmux sessions and releases server resources.
+
 ### Environment Helpers
 
 | Method | Description |

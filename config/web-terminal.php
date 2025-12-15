@@ -58,6 +58,8 @@ return [
     'allowed_commands' => [
         'ls',
         'pwd',
+        'cd',
+        'uname',
         'whoami',
         'date',
         'uptime',

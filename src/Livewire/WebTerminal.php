@@ -82,6 +82,16 @@ class WebTerminal extends Component
     public int $interactiveOutputStart = 0;
 
     /**
+     * The command being executed in interactive mode (for logging).
+     */
+    protected string $interactiveCommand = '';
+
+    /**
+     * Timestamp when interactive command started (for execution time logging).
+     */
+    protected float $interactiveStartTime = 0;
+
+    /**
      * The terminal prompt string.
      */
     public string $prompt = '$ ';
@@ -1409,6 +1419,8 @@ class WebTerminal extends Component
         } catch (\Throwable $e) {
             $this->addOutput(TerminalOutput::error('Error cancelling process: ' . $e->getMessage()));
         } finally {
+            // Log the cancelled command (exit code 130 = 128 + SIGINT)
+            $this->logInteractiveCommand(130);
             $this->resetInteractiveState();
         }
     }
@@ -1424,6 +1436,10 @@ class WebTerminal extends Component
 
             // Record where interactive output starts (for full-screen replacement)
             $this->interactiveOutputStart = count($this->output);
+
+            // Store command and start time for logging
+            $this->interactiveCommand = $command;
+            $this->interactiveStartTime = microtime(true);
 
             $this->activeSessionId = $handler->startInteractive($command);
             $this->isInteractive = true;
@@ -1497,10 +1513,34 @@ class WebTerminal extends Component
             $this->addOutput(TerminalOutput::info("Process exited with code {$exitCode}"));
         }
 
+        // Log the interactive command before resetting state
+        $this->logInteractiveCommand($exitCode);
+
         $this->resetInteractiveState();
 
         // Dispatch Livewire event to stop polling
         $this->dispatch('terminal-interactive-finished');
+    }
+
+    /**
+     * Log an interactive command execution.
+     */
+    protected function logInteractiveCommand(?int $exitCode): void
+    {
+        if ($this->terminalSessionId === '' || $this->interactiveCommand === '') {
+            return;
+        }
+
+        $executionTime = $this->interactiveStartTime > 0
+            ? microtime(true) - $this->interactiveStartTime
+            : 0;
+
+        $logger = $this->getLogger();
+        $logger->logCommand($this->terminalSessionId, $this->interactiveCommand, [
+            'connection_type' => $this->getConnectionTypeForLog(),
+            'exit_code' => $exitCode,
+            'execution_time_seconds' => (int) ceil($executionTime),
+        ]);
     }
 
     /**
@@ -1512,6 +1552,8 @@ class WebTerminal extends Component
         $this->activeSessionId = '';
         $this->isExecuting = false;
         $this->interactiveOutputStart = 0;
+        $this->interactiveCommand = '';
+        $this->interactiveStartTime = 0;
     }
 
     /**

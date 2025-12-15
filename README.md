@@ -519,6 +519,36 @@ WebTerminal::make()
 
 ## Configuration Options
 
+### Dynamic Configuration with Closures
+
+All configuration methods accept Closures for dynamic resolution at runtime. This is useful for:
+- Resolving values based on the authenticated user
+- Loading configuration from the database or external sources
+- Conditional logic based on current state
+
+```php
+WebTerminal::make()
+    ->key(fn () => 'terminal-' . auth()->id())
+    ->allowedCommands(fn () => auth()->user()->isAdmin()
+        ? ['*']
+        : ['ls', 'pwd', 'cat'])
+    ->ssh(fn () => [
+        'host' => auth()->user()->server->host,
+        'username' => auth()->user()->server->username,
+        'key' => auth()->user()->server->private_key,
+    ])
+    ->log(fn () => [
+        'enabled' => true,
+        'commands' => true,
+        'identifier' => 'user-' . auth()->id(),
+        'metadata' => [
+            'user_id' => auth()->id(),
+            'user_email' => auth()->user()?->email,
+            'tenant_id' => filament()->getTenant()?->id,
+        ],
+    ])
+```
+
 ### Connection Types
 
 #### Local Connection
@@ -539,6 +569,37 @@ WebTerminal::make()
         password: 'your-password',
         port: 22
     )
+```
+
+#### SSH Connection with Array Configuration
+
+Use an array to configure SSH connections, useful when loading configuration dynamically:
+
+```php
+WebTerminal::make()
+    ->ssh([
+        'host' => 'server.example.com',
+        'username' => 'deploy',
+        'password' => 'your-password',
+        'port' => 22,
+    ])
+
+// With key authentication
+WebTerminal::make()
+    ->ssh([
+        'host' => 'server.example.com',
+        'username' => 'deploy',
+        'key' => file_get_contents('/path/to/private_key'),
+        'passphrase' => 'optional-passphrase',
+    ])
+
+// With Closure for dynamic resolution
+WebTerminal::make()
+    ->ssh(fn () => [
+        'host' => auth()->user()->server->host,
+        'username' => auth()->user()->server->username,
+        'key' => auth()->user()->server->private_key,
+    ])
 ```
 
 #### SSH Connection with Key
@@ -756,7 +817,7 @@ WebTerminal::make()
     ->local()
     ->log()
 
-// Enable logging with custom settings
+// Enable logging with custom settings (named parameters)
 WebTerminal::make()
     ->key('server-terminal')
     ->ssh(host: 'server.com', username: 'admin', password: 'secret')
@@ -784,6 +845,52 @@ WebTerminal::make()
         identifier: 'full-audit-terminal',
     )
 ```
+
+#### Array and Closure Configuration
+
+The `log()` method also accepts an array or Closure, which is useful for dynamic configuration and adding custom metadata:
+
+```php
+// Array configuration with metadata
+WebTerminal::make()
+    ->local()
+    ->log([
+        'enabled' => true,
+        'connections' => true,
+        'commands' => true,
+        'identifier' => 'admin-terminal',
+        'metadata' => [
+            'context' => 'admin_panel',
+            'feature' => 'server_maintenance',
+        ],
+    ])
+
+// Closure for dynamic resolution (recommended for user-specific data)
+WebTerminal::make()
+    ->local()
+    ->log(fn () => [
+        'enabled' => true,
+        'commands' => true,
+        'identifier' => 'user-terminal',
+        'metadata' => [
+            'user_id' => auth()->id(),
+            'user_email' => auth()->user()?->email,
+            'tenant_id' => filament()->getTenant()?->id,
+            'session_started_at' => now()->toIso8601String(),
+        ],
+    ])
+```
+
+#### Log Configuration Options
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `enabled` | `bool` | Enable/disable logging |
+| `connections` | `bool` | Log connect/disconnect events |
+| `commands` | `bool` | Log command executions |
+| `output` | `bool` | Log command output (can be verbose) |
+| `identifier` | `string` | Custom identifier for filtering logs |
+| `metadata` | `array` | Custom metadata stored with each log entry |
 
 ### Event Types
 

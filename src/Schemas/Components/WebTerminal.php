@@ -186,29 +186,49 @@ class WebTerminal extends Livewire
      * - Password auth: provide `password` parameter
      * - Key auth: provide `key` parameter with the private key content
      *
-     * The `key` parameter accepts the private key content directly. You can load it from:
-     * - File: `key: file_get_contents('/path/to/key')`
-     * - Environment: `key: env('SSH_PRIVATE_KEY')`
-     * - Storage: `key: Storage::get('ssh/key')`
+     * Can be called with named parameters or an array/Closure:
      *
-     * @param  string  $host  SSH host
-     * @param  string  $username  SSH username
+     * @example Named parameters:
+     * ->ssh(host: 'example.com', username: 'user', password: 'pass')
+     *
+     * @example Array configuration:
+     * ->ssh(['host' => 'example.com', 'username' => 'user', 'password' => 'pass'])
+     *
+     * @example Closure (evaluated at render time):
+     * ->ssh(fn () => [
+     *     'host' => config('ssh.host'),
+     *     'username' => config('ssh.username'),
+     *     'private_key' => Storage::get('ssh/key'),
+     * ])
+     *
+     * @param  array|Closure|string  $config  Array/Closure config, or SSH host when using named params
+     * @param  string|null  $username  SSH username (when using named params)
      * @param  string|null  $password  Password for password-based auth
      * @param  string|null  $key  Private key content for key-based auth
      * @param  string|null  $passphrase  Passphrase for encrypted private keys
      * @param  int  $port  SSH port (default: 22)
      */
     public function ssh(
-        string $host,
-        string $username,
+        array|Closure|string $config,
+        ?string $username = null,
         ?string $password = null,
         ?string $key = null,
         ?string $passphrase = null,
         int $port = 22
     ): static {
+        // If config is array or Closure, use it directly
+        if (is_array($config) || $config instanceof Closure) {
+            $this->connectionConfig = $config instanceof Closure
+                ? fn () => array_merge(['type' => 'ssh'], $this->evaluate($config))
+                : array_merge(['type' => 'ssh'], $config);
+
+            return $this;
+        }
+
+        // Named parameters style (config is the host string)
         $this->connectionConfig = [
             'type' => 'ssh',
-            'host' => $host,
+            'host' => $config,
             'username' => $username,
             'password' => $password,
             'private_key' => $key,
@@ -596,20 +616,68 @@ class WebTerminal extends Livewire
      * All parameters have sensible defaults from config. When not specified,
      * values from config/web-terminal.php are used.
      *
-     * @param  bool|Closure|null  $enabled  Enable/disable logging for this terminal
+     * Can be called with named parameters or an array/Closure:
+     *
+     * @example Named parameters:
+     * ->log(enabled: true, commands: true, identifier: 'my-terminal')
+     *
+     * @example Array configuration:
+     * ->log([
+     *     'enabled' => true,
+     *     'connections' => true,
+     *     'commands' => true,
+     *     'identifier' => 'my-terminal',
+     *     'metadata' => ['context' => 'admin'],
+     * ])
+     *
+     * @example Closure (evaluated at render time):
+     * ->log(fn () => [
+     *     'enabled' => true,
+     *     'identifier' => 'terminal-' . auth()->id(),
+     *     'metadata' => ['user_id' => auth()->id()],
+     * ])
+     *
+     * @param  array|Closure|bool|null  $config  Array/Closure config, or enabled boolean when using named params
      * @param  bool|Closure|null  $connections  Log connection/disconnection events
      * @param  bool|Closure|null  $commands  Log command executions
      * @param  bool|Closure|null  $output  Log command output (can be verbose)
      * @param  string|Closure|null  $identifier  Custom identifier for filtering logs
+     * @param  array|Closure|null  $metadata  Custom metadata for all log entries
      */
     public function log(
-        bool|Closure|null $enabled = true,
+        array|Closure|bool|null $config = true,
         bool|Closure|null $connections = null,
         bool|Closure|null $commands = null,
         bool|Closure|null $output = null,
         string|Closure|null $identifier = null,
+        array|Closure|null $metadata = null,
     ): static {
-        $this->loggingEnabled = $enabled;
+        // If config is array or Closure, extract values from it
+        if (is_array($config) || $config instanceof Closure) {
+            if ($config instanceof Closure) {
+                // Store closure to be evaluated later - wrap individual values
+                $configClosure = $config;
+                $this->loggingEnabled = fn () => $this->evaluate($configClosure)['enabled'] ?? true;
+                $this->logConnections = fn () => $this->evaluate($configClosure)['connections'] ?? null;
+                $this->logCommands = fn () => $this->evaluate($configClosure)['commands'] ?? null;
+                $this->logOutput = fn () => $this->evaluate($configClosure)['output'] ?? null;
+                $this->logIdentifier = fn () => $this->evaluate($configClosure)['identifier'] ?? null;
+                $this->logMetadata = fn () => $this->evaluate($configClosure)['metadata'] ?? [];
+            } else {
+                // Array config
+                $this->loggingEnabled = $config['enabled'] ?? true;
+                $this->logConnections = $config['connections'] ?? null;
+                $this->logCommands = $config['commands'] ?? null;
+                $this->logOutput = $config['output'] ?? null;
+                $this->logIdentifier = $config['identifier'] ?? null;
+                $this->logMetadata = $config['metadata'] ?? [];
+            }
+
+            return $this;
+        }
+
+        // Named parameters style (config is the enabled boolean)
+        $this->loggingEnabled = $config;
 
         if ($connections !== null) {
             $this->logConnections = $connections;
@@ -625,6 +693,10 @@ class WebTerminal extends Livewire
 
         if ($identifier !== null) {
             $this->logIdentifier = $identifier;
+        }
+
+        if ($metadata !== null) {
+            $this->logMetadata = $metadata;
         }
 
         return $this;

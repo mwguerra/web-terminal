@@ -1530,6 +1530,16 @@ class WebTerminal extends Component
         // Log the interactive command before resetting state
         $this->logInteractiveCommand($exitCode);
 
+        // Terminate the tmux session to clean up resources
+        if ($this->activeSessionId !== '') {
+            try {
+                $handler = $this->getConnectionHandler();
+                $handler->terminateProcess($this->activeSessionId);
+            } catch (\Throwable) {
+                // Silent fail - session might already be cleaned up
+            }
+        }
+
         $this->resetInteractiveState();
 
         // Dispatch Livewire event to stop polling

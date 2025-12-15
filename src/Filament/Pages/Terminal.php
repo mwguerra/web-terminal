@@ -88,6 +88,7 @@ class Terminal extends Page implements HasSchemas
                                 enabled: true,
                                 connections: true,
                                 commands: true,
+                                output: true,
                                 identifier: 'local-terminal',
                             ),
                     ]),

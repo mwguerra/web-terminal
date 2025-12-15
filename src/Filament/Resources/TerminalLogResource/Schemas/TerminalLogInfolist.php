@@ -129,13 +129,30 @@ class TerminalLogInfolist
                 Section::make(__('web-terminal::terminal.infolist.output'))
                     ->icon('heroicon-o-document-text')
                     ->visible(fn ($record): bool => $record->output !== null)
-                    ->collapsed()
                     ->schema([
                         TextEntry::make('output')
                             ->label('')
-                            ->fontFamily('mono')
-                            ->prose()
-                            ->markdown(false),
+                            ->formatStateUsing(function (?string $state): string {
+                                if ($state === null) {
+                                    return '';
+                                }
+
+                                $lines = explode("\n", $state);
+                                $lineCount = count($lines);
+                                // Calculate height: min 2 lines, max 10 lines
+                                $displayLines = max(2, min(10, $lineCount));
+                                // Each line ~1.25rem, add some padding
+                                $height = ($displayLines * 1.25) + 0.5;
+
+                                $escapedOutput = e($state);
+
+                                return <<<HTML
+                                <div class="w-full overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900" style="max-height: {$height}rem;">
+                                    <pre class="p-3 text-xs font-mono whitespace-pre text-gray-700 dark:text-gray-300 m-0">{$escapedOutput}</pre>
+                                </div>
+                                HTML;
+                            })
+                            ->html(),
                     ]),
 
                 Section::make(__('web-terminal::terminal.infolist.client_information'))

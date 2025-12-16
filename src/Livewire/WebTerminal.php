@@ -127,7 +127,7 @@ class WebTerminal extends Component
      */
     public function getConnectionType(): string
     {
-        return ucfirst($this->connectionConfig['type'] ?? 'local');
+        return ucfirst($this->getConnectionConfig()['type'] ?? 'local');
     }
 
     /**
@@ -136,7 +136,7 @@ class WebTerminal extends Component
      */
     public function getDisplayHost(): ?string
     {
-        return $this->connectionConfig['host'] ?? null;
+        return $this->getConnectionConfig()['host'] ?? null;
     }
 
     /**
@@ -145,7 +145,7 @@ class WebTerminal extends Component
      */
     public function getDisplayPort(): int
     {
-        return $this->connectionConfig['port'] ?? 22;
+        return $this->getConnectionConfig()['port'] ?? 22;
     }
 
     /**
@@ -154,7 +154,7 @@ class WebTerminal extends Component
      */
     public function getDisplayUsername(): ?string
     {
-        return $this->connectionConfig['username'] ?? null;
+        return $this->getConnectionConfig()['username'] ?? null;
     }
 
     /**
@@ -163,7 +163,7 @@ class WebTerminal extends Component
      */
     public function getDisplayAuthMethod(): string
     {
-        return ! empty($this->connectionConfig['private_key']) ? 'key' : 'password';
+        return ! empty($this->getConnectionConfig()['private_key']) ? 'key' : 'password';
     }
 
     /**
@@ -172,7 +172,56 @@ class WebTerminal extends Component
      */
     public function getDisplayWorkingDirectory(): ?string
     {
-        return $this->connectionConfig['working_directory'] ?? null;
+        return $this->getConnectionConfig()['working_directory'] ?? null;
+    }
+
+    /**
+     * Get the session key for storing connection config.
+     */
+    protected function getSessionKey(): string
+    {
+        return 'web-terminal.connection.' . $this->componentId;
+    }
+
+    /**
+     * Store connection config in session.
+     * This keeps sensitive credentials server-side while persisting across Livewire requests.
+     */
+    protected function storeConnectionConfig(array $config): void
+    {
+        session()->put($this->getSessionKey(), $config);
+    }
+
+    /**
+     * Retrieve connection config from session.
+     * Falls back to the protected property (set during mount on first request).
+     *
+     * @return array<string, mixed>
+     */
+    protected function getConnectionConfig(): array
+    {
+        // If we have a cached config in the protected property, use it
+        if (! empty($this->connectionConfig)) {
+            return $this->connectionConfig;
+        }
+
+        // Otherwise, restore from session
+        $config = session()->get($this->getSessionKey(), []);
+
+        // Cache in protected property for this request
+        if (! empty($config)) {
+            $this->connectionConfig = $config;
+        }
+
+        return $config ?: ['type' => 'local'];
+    }
+
+    /**
+     * Clear connection config from session.
+     */
+    protected function clearConnectionConfig(): void
+    {
+        session()->forget($this->getSessionKey());
     }
 
     /**
@@ -182,8 +231,16 @@ class WebTerminal extends Component
     public int $historyLimit = 5;
 
     /**
+     * Unique component instance ID for session-based config storage.
+     * This public property persists across Livewire requests and is used as a session key.
+     */
+    #[Locked]
+    public string $componentId = '';
+
+    /**
      * Connection configuration - stored server-side only, never sent to frontend.
      * Contains sensitive data (password, private_key, passphrase) that must not be serialized.
+     * This is a cached version restored from session; the session is the source of truth.
      *
      * @var array<string, mixed>
      */
@@ -340,6 +397,9 @@ class WebTerminal extends Component
         ?bool $disconnectOnNavigate = null,
         ?int $inactivityTimeout = null,
     ): void {
+        // Generate unique component ID for session-based config storage
+        $this->componentId = (string) \Illuminate\Support\Str::uuid();
+
         // Set connection config
         if ($connection instanceof ConnectionConfig) {
             $this->connectionConfig = [
@@ -360,6 +420,9 @@ class WebTerminal extends Component
             // Default to local connection
             $this->connectionConfig = ['type' => 'local'];
         }
+
+        // Store connection config in session (server-side only, persists across Livewire requests)
+        $this->storeConnectionConfig($this->connectionConfig);
 
         // Set allowed commands (from config or parameter)
         $this->allowedCommands = $allowedCommands
@@ -420,8 +483,8 @@ class WebTerminal extends Component
 
         // Initialize current directory
         // For remote connections, don't use local getcwd()
-        $configuredDir = $this->connectionConfig['working_directory'] ?? null;
-        $connectionType = $this->connectionConfig['type'] ?? 'local';
+        $configuredDir = $this->getConnectionConfig()['working_directory'] ?? null;
+        $connectionType = $this->getConnectionConfig()['type'] ?? 'local';
 
         if ($configuredDir !== null) {
             $this->currentDirectory = $configuredDir;
@@ -560,7 +623,7 @@ class WebTerminal extends Component
         try {
             // Actually establish and test the connection
             $factory = new ConnectionHandlerFactory();
-            $config = ConnectionConfig::fromArray($this->connectionConfig);
+            $config = ConnectionConfig::fromArray($this->getConnectionConfig());
             $this->handler = $factory->createAndConnect($config);
 
             // Configure connection handler with environment
@@ -572,13 +635,14 @@ class WebTerminal extends Component
             // Log connection
             $logger = $this->getLogger();
             $this->terminalSessionId = $logger->generateSessionId();
+            $config = $this->getConnectionConfig();
             $logger->logConnection([
                 'terminal_session_id' => $this->terminalSessionId,
                 'terminal_identifier' => $this->logIdentifier,
                 'connection_type' => $this->getConnectionTypeForLog(),
-                'host' => $this->connectionConfig['host'] ?? null,
-                'port' => $this->connectionConfig['port'] ?? null,
-                'ssh_username' => $this->connectionConfig['username'] ?? null,
+                'host' => $config['host'] ?? null,
+                'port' => $config['port'] ?? null,
+                'ssh_username' => $config['username'] ?? null,
             ]);
 
         } catch (ConnectionException $e) {
@@ -597,9 +661,10 @@ class WebTerminal extends Component
      */
     protected function getConnectionDescription(): string
     {
-        $type = $this->connectionConfig['type'] ?? 'local';
-        $host = $this->connectionConfig['host'] ?? null;
-        $port = $this->connectionConfig['port'] ?? null;
+        $config = $this->getConnectionConfig();
+        $type = $config['type'] ?? 'local';
+        $host = $config['host'] ?? null;
+        $port = $config['port'] ?? null;
 
         $typeLabel = match ($type) {
             'local' => 'Local',
@@ -653,12 +718,16 @@ class WebTerminal extends Component
         // Log disconnection before resetting state
         if ($this->terminalSessionId !== '') {
             $logger = $this->getLogger();
+            $config = $this->getConnectionConfig();
             $logger->logDisconnection($this->terminalSessionId, [
                 'connection_type' => $this->getConnectionTypeForLog(),
-                'host' => $this->connectionConfig['host'] ?? null,
-                'port' => $this->connectionConfig['port'] ?? null,
+                'host' => $config['host'] ?? null,
+                'port' => $config['port'] ?? null,
             ]);
         }
+
+        // Clear connection config from session
+        $this->clearConnectionConfig();
 
         $connectionDesc = $this->getConnectionDescription();
         $this->isConnected = false;
@@ -778,12 +847,13 @@ class WebTerminal extends Component
             if ($this->terminalSessionId !== '') {
                 $logger = $this->getLogger();
                 $outputText = trim($result->stdout . "\n" . $result->stderr);
+                $config = $this->getConnectionConfig();
 
                 $logger->logCommand($this->terminalSessionId, $command, [
                     'connection_type' => $this->getConnectionTypeForLog(),
-                    'host' => $this->connectionConfig['host'] ?? null,
-                    'port' => $this->connectionConfig['port'] ?? null,
-                    'ssh_username' => $this->connectionConfig['username'] ?? null,
+                    'host' => $config['host'] ?? null,
+                    'port' => $config['port'] ?? null,
+                    'ssh_username' => $config['username'] ?? null,
                     'exit_code' => $result->exitCode,
                     'execution_time_seconds' => (int) ceil($result->executionTime),
                     'output' => $outputText !== '' ? $outputText : null,
@@ -872,7 +942,7 @@ class WebTerminal extends Component
      */
     protected function isRemoteConnection(): bool
     {
-        $type = $this->connectionConfig['type'] ?? 'local';
+        $type = $this->getConnectionConfig()['type'] ?? 'local';
 
         return $type === 'ssh';
     }
@@ -1113,7 +1183,7 @@ class WebTerminal extends Component
         // Recreate handler if needed (handlers can't be serialized by Livewire)
         if ($this->handler === null) {
             $factory = new ConnectionHandlerFactory();
-            $config = ConnectionConfig::fromArray($this->connectionConfig);
+            $config = ConnectionConfig::fromArray($this->getConnectionConfig());
             $this->handler = $factory->createAndConnect($config);
 
             // Configure connection handler with environment
@@ -1238,7 +1308,7 @@ class WebTerminal extends Component
      */
     protected function getConnectionTypeForLog(): string
     {
-        return $this->connectionConfig['type'] ?? 'local';
+        return $this->getConnectionConfig()['type'] ?? 'local';
     }
 
     /**
@@ -1292,7 +1362,7 @@ class WebTerminal extends Component
      */
     protected function dispatchAuditEvent(string $command, CommandResult $result): void
     {
-        $config = ConnectionConfig::fromArray($this->connectionConfig);
+        $config = ConnectionConfig::fromArray($this->getConnectionConfig());
 
         event(CommandExecutedEvent::fromExecution(
             command: $command,
@@ -1638,13 +1708,14 @@ class WebTerminal extends Component
 
         $logger = $this->getLogger();
         $outputText = $this->extractInteractiveOutputText();
+        $config = $this->getConnectionConfig();
 
         // Log command with SSH details and output in same entry
         $logger->logCommand($this->terminalSessionId, $this->interactiveCommand, [
             'connection_type' => $this->getConnectionTypeForLog(),
-            'host' => $this->connectionConfig['host'] ?? null,
-            'port' => $this->connectionConfig['port'] ?? null,
-            'ssh_username' => $this->connectionConfig['username'] ?? null,
+            'host' => $config['host'] ?? null,
+            'port' => $config['port'] ?? null,
+            'ssh_username' => $config['username'] ?? null,
             'exit_code' => $exitCode,
             'execution_time_seconds' => (int) ceil($executionTime),
             'output' => $outputText !== '' ? $outputText : null,

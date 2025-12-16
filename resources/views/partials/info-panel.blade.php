@@ -41,7 +41,7 @@
                         <span class="text-xs font-medium text-slate-800 dark:text-white/90">{{ $this->getConnectionType() }}</span>
                     </div>
 
-                    @if($this->getConnectionType() === 'SSH')
+                    @if($this->getConnectionType() === 'Ssh')
                         {{-- Host --}}
                         <div class="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-lg bg-slate-200/50 dark:bg-white/5">
                             <span class="text-xs text-slate-500 dark:text-white/50">Host</span>

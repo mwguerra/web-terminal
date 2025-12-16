@@ -17,8 +17,8 @@ class TerminalLogInfolist
     {
         return $schema
             ->components([
-                Grid::make(2)
-                    ->schema([
+                Grid::make(2)->columnSpanFull()->schema([
+                    Grid::make(1)->schema([
                         Section::make(__('web-terminal::terminal.infolist.event_information'))
                             ->icon('heroicon-o-information-circle')
                             ->schema([
@@ -92,8 +92,7 @@ class TerminalLogInfolist
 
                     ]),
 
-                Grid::make(2)
-                    ->schema([
+                    Grid::make(1)->schema([
                         Section::make(__('web-terminal::terminal.infolist.timing'))
                             ->icon('heroicon-o-clock')
                             ->schema([
@@ -186,6 +185,7 @@ class TerminalLogInfolist
                                     ->valueLabel(__('web-terminal::terminal.infolist.metadata_value')),
                             ]),
                     ])
+                ])
             ]);
     }
 }

@@ -1592,6 +1592,44 @@ class WebTerminal extends Component
             'exit_code' => $exitCode,
             'execution_time_seconds' => (int) ceil($executionTime),
         ]);
+
+        // Log output from the interactive session
+        $outputText = $this->extractInteractiveOutputText();
+        if ($outputText !== '') {
+            $logger->logOutput($this->terminalSessionId, $outputText, [
+                'connection_type' => $this->getConnectionTypeForLog(),
+            ]);
+        }
+    }
+
+    /**
+     * Extract the text content from interactive session output.
+     *
+     * This gathers all output lines added during the interactive session
+     * (from interactiveOutputStart onwards) and combines them into a single string.
+     */
+    protected function extractInteractiveOutputText(): string
+    {
+        if ($this->interactiveOutputStart >= count($this->output)) {
+            return '';
+        }
+
+        $outputLines = [];
+        $sessionOutput = array_slice($this->output, $this->interactiveOutputStart);
+
+        foreach ($sessionOutput as $entry) {
+            // Only include stdout and stderr entries, not command echoes
+            $type = $entry['type'] ?? '';
+            if (in_array($type, ['stdout', 'stderr', 'error'], true)) {
+                // Get the content from the TerminalOutput array format
+                $text = $entry['content'] ?? '';
+                if ($text !== '') {
+                    $outputLines[] = $text;
+                }
+            }
+        }
+
+        return trim(implode("\n", $outputLines));
     }
 
     /**

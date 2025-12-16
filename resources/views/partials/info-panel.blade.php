@@ -45,39 +45,35 @@
                         {{-- Host --}}
                         <div class="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-lg bg-slate-200/50 dark:bg-white/5">
                             <span class="text-xs text-slate-500 dark:text-white/50">Host</span>
-                            <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono break-all">{{ $connectionConfig['host'] ?? 'N/A' }}</span>
+                            <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono break-all">{{ $this->getDisplayHost() ?? 'N/A' }}</span>
                         </div>
 
                         {{-- Port --}}
                         <div class="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-lg bg-slate-200/50 dark:bg-white/5">
                             <span class="text-xs text-slate-500 dark:text-white/50">Port</span>
-                            <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono">{{ $connectionConfig['port'] ?? 22 }}</span>
+                            <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono">{{ $this->getDisplayPort() }}</span>
                         </div>
 
                         {{-- Username --}}
                         <div class="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-lg bg-slate-200/50 dark:bg-white/5">
                             <span class="text-xs text-slate-500 dark:text-white/50">Username</span>
-                            <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono break-all">{{ $connectionConfig['username'] ?? 'N/A' }}</span>
+                            <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono break-all">{{ $this->getDisplayUsername() ?? 'N/A' }}</span>
                         </div>
 
                         {{-- Auth Method --}}
                         <div class="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-lg bg-slate-200/50 dark:bg-white/5">
                             <span class="text-xs text-slate-500 dark:text-white/50">Auth Method</span>
                             <span class="text-xs font-medium text-slate-800 dark:text-white/90">
-                                @if(!empty($connectionConfig['private_key']))
-                                    SSH Key
-                                @else
-                                    Password
-                                @endif
+                                {{ $this->getDisplayAuthMethod() === 'key' ? 'SSH Key' : 'Password' }}
                             </span>
                         </div>
                     @endif
 
                     {{-- Working Directory --}}
-                    @if(!empty($connectionConfig['working_directory']))
+                    @if($this->getDisplayWorkingDirectory())
                     <div class="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-lg bg-slate-200/50 dark:bg-white/5">
                         <span class="text-xs text-slate-500 dark:text-white/50">Working Directory</span>
-                        <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono break-all" title="{{ $connectionConfig['working_directory'] }}">{{ $connectionConfig['working_directory'] }}</span>
+                        <span class="text-xs font-medium text-slate-800 dark:text-white/90 font-mono break-all" title="{{ $this->getDisplayWorkingDirectory() }}">{{ $this->getDisplayWorkingDirectory() }}</span>
                     </div>
                     @endif
 

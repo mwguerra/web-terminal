@@ -25,19 +25,23 @@ describe('WebTerminal Component', function () {
         });
 
         it('mounts with connection array', function () {
-            Livewire::test(WebTerminal::class, [
+            $component = Livewire::test(WebTerminal::class, [
                 'connection' => ['type' => 'local'],
-            ])
-                ->assertSet('connectionConfig.type', 'local');
+            ]);
+
+            // connectionConfig is protected, verify through public getter
+            expect($component->instance()->getConnectionType())->toBe('Local');
         });
 
         it('mounts with ConnectionConfig object', function () {
             $config = ConnectionConfig::local();
 
-            Livewire::test(WebTerminal::class, [
+            $component = Livewire::test(WebTerminal::class, [
                 'connection' => $config,
-            ])
-                ->assertSet('connectionConfig.type', 'local');
+            ]);
+
+            // connectionConfig is protected, verify through public getter
+            expect($component->instance()->getConnectionType())->toBe('Local');
         });
 
         it('mounts with custom timeout', function () {

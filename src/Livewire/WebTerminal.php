@@ -131,18 +131,63 @@ class WebTerminal extends Component
     }
 
     /**
+     * Get the connection host for display (info panel only).
+     * Rendered server-side, not exposed as JS property.
+     */
+    public function getDisplayHost(): ?string
+    {
+        return $this->connectionConfig['host'] ?? null;
+    }
+
+    /**
+     * Get the connection port for display (info panel only).
+     * Rendered server-side, not exposed as JS property.
+     */
+    public function getDisplayPort(): int
+    {
+        return $this->connectionConfig['port'] ?? 22;
+    }
+
+    /**
+     * Get the SSH username for display (info panel only).
+     * Rendered server-side, not exposed as JS property.
+     */
+    public function getDisplayUsername(): ?string
+    {
+        return $this->connectionConfig['username'] ?? null;
+    }
+
+    /**
+     * Get the authentication method for display (info panel only).
+     * Returns 'key' or 'password' without exposing actual credentials.
+     */
+    public function getDisplayAuthMethod(): string
+    {
+        return ! empty($this->connectionConfig['private_key']) ? 'key' : 'password';
+    }
+
+    /**
+     * Get the working directory for display (info panel only).
+     * Rendered server-side, not exposed as JS property.
+     */
+    public function getDisplayWorkingDirectory(): ?string
+    {
+        return $this->connectionConfig['working_directory'] ?? null;
+    }
+
+    /**
      * Maximum number of commands in history.
      */
     #[Locked]
     public int $historyLimit = 5;
 
     /**
-     * Connection configuration (locked to prevent tampering).
+     * Connection configuration - stored server-side only, never sent to frontend.
+     * Contains sensitive data (password, private_key, passphrase) that must not be serialized.
      *
      * @var array<string, mixed>
      */
-    #[Locked]
-    public array $connectionConfig = [];
+    protected array $connectionConfig = [];
 
     /**
      * Allowed commands (locked to prevent tampering).

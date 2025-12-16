@@ -1082,13 +1082,63 @@ The terminal includes these built-in commands:
 - `clear` - Clear terminal output
 - `history` - Show command history
 
-## Security
+## Security by Design
 
-- Only whitelisted commands can be executed (unless `allowAllCommands()` is used)
-- Command arguments are sanitized
-- Sessions are isolated per user
-- Rate limiting protection
-- All commands can be logged for auditing
+WebTerminal is built with security as a core principle, implementing multiple layers of protection to minimize attack surface and prevent credential exposure.
+
+### Credential Protection
+
+**Server-Side Only Credentials**: SSH passwords, private keys, and passphrases are stored exclusively in protected PHP properties that are **never serialized or sent to the browser**. This prevents:
+
+- Credential exposure in HTML page source
+- Credential leakage in Livewire AJAX requests
+- JavaScript access to sensitive authentication data
+- Browser DevTools inspection of credentials
+
+The connection details shown in the info panel (host, port, username) are rendered server-side via PHP methods, not exposed as JavaScript-accessible properties.
+
+### Command Filtering
+
+Commands are validated server-side against a configurable allowlist before execution. This provides defense-in-depth against:
+
+- Command injection attacks
+- Unauthorized system access
+- Privilege escalation attempts
+
+Only whitelisted commands can be executed (unless `allowAllCommands()` is explicitly used).
+
+### Input Sanitization
+
+All user input is properly escaped and sanitized:
+- Commands are validated against the whitelist before execution
+- Output is escaped before display to prevent XSS
+- Environment variables are filtered
+
+### Session Security
+
+- Terminal sessions use secure UUIDs
+- Sessions can be configured to disconnect on page navigation
+- Inactivity timeout support for automatic disconnection
+- All session events can be logged for audit purposes
+
+### Audit Logging
+
+Optional comprehensive logging captures:
+- Connection events (connect/disconnect)
+- Command execution with exit codes and timing
+- Blocked command attempts (security events)
+- User and session identification
+
+Logging can be configured per-terminal and respects output truncation limits.
+
+### Security Best Practices
+
+1. **Use allowedCommands()**: Always restrict commands to only what's needed
+2. **Avoid allowAllCommands()**: Only use in controlled development environments
+3. **Enable logging**: Track terminal usage for security auditing
+4. **Use SSH keys**: Prefer key-based authentication over passwords when possible
+5. **Set timeouts**: Configure inactivity timeouts to limit exposure
+6. **Restrict access**: Use Filament policies or middleware to limit who can access terminal pages
 
 ### Rate Limiting
 

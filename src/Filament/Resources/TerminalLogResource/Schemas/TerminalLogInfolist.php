@@ -140,8 +140,8 @@ class TerminalLogInfolist
                                 $escapedOutput = e($state);
 
                                 return <<<HTML
-                                <div class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-hidden">
-                                    <pre class="p-3 text-xs font-mono whitespace-pre text-gray-700 dark:text-gray-300 m-0 overflow-auto" style="max-height: 15rem;">{$escapedOutput}</pre>
+                                <div style="width: 100%; border-radius: 0.5rem; border: 1px solid #e5e7eb; background-color: #f9fafb; overflow: hidden;">
+                                    <pre style="padding: 0.75rem; font-size: 0.75rem; font-family: ui-monospace, SFMono-Regular, monospace; white-space: pre; color: #374151; margin: 0; overflow: auto; max-height: 15rem;">{$escapedOutput}</pre>
                                 </div>
                                 HTML;
                             })

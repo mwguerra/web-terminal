@@ -271,6 +271,8 @@ WebTerminal::make()
     ->height('400px')
 ```
 
+![Local Terminal](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/local-terminal.jpg)
+
 ## Filament Integration
 
 The package provides a Filament plugin that adds:
@@ -559,6 +561,8 @@ The Filament plugin's Terminal page (`/admin/terminal`) uses an extended command
 | `composer *` | Composer package manager |
 
 **Note:** The `*` wildcard allows the command with any arguments (e.g., `php artisan migrate`, `composer require package/name`).
+
+![Terminal Commands](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/local-terminal-commands.jpg)
 
 ### Customizing Commands
 
@@ -907,6 +911,8 @@ WebTerminal::make()
 
 The package includes comprehensive logging for terminal sessions, connections, and command execution.
 
+![Terminal Logs Resource](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/terminal-log-resource.jpg)
+
 ### Configuration
 
 Logging is configured in `config/web-terminal.php`:
@@ -1074,6 +1080,8 @@ When logging is enabled, the terminal info panel displays session statistics:
 - Session Duration
 - Error Count
 
+![Session Info Panel](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/ssh-terminal-info-panel.jpg)
+
 ### Querying Logs
 
 ```php
@@ -1120,6 +1128,12 @@ TerminalLog::connections()
 | `errors()` | Only error events |
 | `recent(int $hours)` | Logs from the last N hours |
 | `olderThan(int $days)` | Logs older than N days |
+
+![Terminal Log View](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/terminal-log-view-page.jpg)
+
+![Terminal Log Filter](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/terminal-log-filter.jpg)
+
+![Terminal Log Command Output](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/terminal-log-command-output.jpg)
 
 ### Log Cleanup
 
@@ -1198,6 +1212,8 @@ Commands are validated server-side against a configurable allowlist before execu
 - Privilege escalation attempts
 
 Only whitelisted commands can be executed (unless `allowAllCommands()` is explicitly used).
+
+![Blocked Command](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/ssh-terminal-not-allowed.jpg)
 
 ### Input Sanitization
 

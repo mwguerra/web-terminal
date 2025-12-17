@@ -2,6 +2,26 @@
 
 A secure web terminal package for Laravel with Filament integration. Execute allowed commands on local systems or SSH servers.
 
+## Features
+
+- **Connection types**: Local shell execution or SSH connections to remote servers
+- **Command whitelisting**: Configurable allowlist to restrict which commands can be executed
+- **Preset configurations**: Ready-to-use presets for Git, Docker, Node.js, Laravel Artisan, and more
+- **Comprehensive logging**: Audit trail for connections, commands, outputs, and errors
+- **Multi-tenant support**: Built-in tenant isolation for SaaS applications
+- **Session management**: Inactivity timeout, disconnect-on-navigate, and session statistics
+- **Filament integration**: Terminal page and Terminal Logs resource with stats widgets
+- **Embeddable**: Use as Livewire component or Filament Schema component in any page
+- **Security by design**: Credential protection, input sanitization, rate limiting
+- **Localization**: English and Portuguese (BR) translations included
+- **Dark mode**: Full dark mode support via Filament
+
+## Requirements
+
+- PHP 8.2+
+- Laravel 11.x or 12.x
+- Filament 4.x
+
 > **Warning**
 >
 > This package provides real shell access to real servers. Commands executed through this terminal can modify files, change configurations, and affect running services.

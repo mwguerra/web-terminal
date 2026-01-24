@@ -40,37 +40,36 @@
                 x-transition:leave="transition ease-in duration-75"
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
-                class="absolute right-0 mt-2 w-64 rounded-lg bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden"
+                class="absolute right-0 mt-2 w-80 rounded-lg bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden"
                 @click.away="showScriptsDropdown = false"
             >
                 <div class="px-3 py-2 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-gray-800/50">
                     <p class="text-xs font-medium text-slate-500 dark:text-gray-400 uppercase tracking-wide">Available Scripts</p>
                 </div>
-                <div class="py-1 max-h-64 overflow-y-auto">
+                <div class="py-1 max-h-80 overflow-y-auto">
                     @foreach($this->getAuthorizedScripts() as $script)
                     <button
                         type="button"
                         wire:click="runScript('{{ $script['key'] }}')"
                         @click="showScriptsDropdown = false"
-                        class="w-full px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-white/10 transition-colors {{ $script['authorized'] ? '' : 'opacity-50 cursor-not-allowed' }}"
+                        class="w-full px-3 py-2.5 text-left hover:bg-slate-100 dark:hover:bg-white/10 transition-colors {{ $script['authorized'] ? '' : 'opacity-50 cursor-not-allowed' }}"
                         {{ $script['authorized'] ? '' : 'disabled' }}
-                        title="{{ $script['authorized'] ? ($script['description'] ?? '') : 'Unauthorized commands: ' . implode(', ', $script['unauthorizedCommands'] ?? []) }}"
                     >
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-3">
                             @if($script['icon'] ?? false)
-                            <x-filament::icon :icon="$script['icon']" class="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" />
+                            <x-filament::icon :icon="$script['icon']" class="w-5 h-5 text-purple-500 dark:text-purple-400 shrink-0" />
                             @else
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-purple-500 dark:text-purple-400 shrink-0">
                                 <path fill-rule="evenodd" d="M6.28 5.22a.75.75 0 0 1 0 1.06L2.56 10l3.72 3.72a.75.75 0 0 1-1.06 1.06L.97 10.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
                             </svg>
                             @endif
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-slate-800 dark:text-gray-100 truncate">{{ $script['label'] }}</p>
+                                <p class="text-sm font-medium text-slate-800 dark:text-gray-100 truncate" title="{{ $script['label'] }}">{{ $script['label'] }}</p>
                                 @if($script['description'] ?? false)
-                                <p class="text-xs text-slate-500 dark:text-gray-400 truncate">{{ $script['description'] }}</p>
+                                <p class="text-xs text-slate-500 dark:text-gray-400 truncate" title="{{ $script['description'] }}">{{ $script['description'] }}</p>
                                 @endif
                                 @if(!($script['authorized'] ?? true))
-                                <p class="text-xs text-red-500 dark:text-red-400 truncate mt-0.5">
+                                <p class="text-xs text-red-500 dark:text-red-400 truncate mt-0.5" title="Unauthorized: {{ implode(', ', $script['unauthorizedCommands'] ?? []) }}">
                                     Unauthorized: {{ implode(', ', array_slice($script['unauthorizedCommands'] ?? [], 0, 2)) }}{{ count($script['unauthorizedCommands'] ?? []) > 2 ? '...' : '' }}
                                 </p>
                                 @endif

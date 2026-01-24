@@ -3,9 +3,12 @@
 <div
     class="absolute right-0 w-80 max-w-[70%] bg-white dark:bg-gray-900 shadow-2xl border-l border-slate-200 dark:border-white/10 z-40 flex flex-col rounded-bl-lg overflow-hidden"
     x-data="{
-        showOutput: @entangle('showScriptOutput'),
+        scriptState: @entangle('scriptExecution').live,
         panelTop: 0,
         panelBottom: 0,
+        get isRunning() {
+            return this.scriptState && this.scriptState.isRunning === true;
+        },
         updatePosition() {
             const terminal = this.$el.closest('.secure-web-terminal');
             if (!terminal) return;
@@ -56,9 +59,9 @@
             type="button"
             wire:click="closeScriptPanel"
             class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
-            :class="{ 'opacity-50 cursor-not-allowed': $wire.isScriptRunning() }"
-            :disabled="$wire.isScriptRunning()"
-            title="{{ $this->isScriptRunning() ? 'Cannot close while script is running' : 'Close panel' }}"
+            :class="{ 'opacity-50 cursor-not-allowed': isRunning }"
+            :disabled="isRunning"
+            :title="isRunning ? 'Cannot close while script is running' : 'Close panel'"
         >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-slate-500 dark:text-gray-400">
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
@@ -138,19 +141,7 @@
 
     {{-- Panel Footer --}}
     <div class="px-4 py-3 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-gray-800/50 space-y-2">
-        {{-- Toggle Output Button --}}
-        <button
-            type="button"
-            @click="showOutput = !showOutput"
-            class="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-slate-200 dark:border-white/10 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-                <path fill-rule="evenodd" d="M2 4.25A2.25 2.25 0 0 1 4.25 2h11.5A2.25 2.25 0 0 1 18 4.25v8.5A2.25 2.25 0 0 1 15.75 15h-3.105a3.501 3.501 0 0 0 1.1 1.677A.75.75 0 0 1 13.26 18H6.74a.75.75 0 0 1-.484-1.323A3.501 3.501 0 0 0 7.355 15H4.25A2.25 2.25 0 0 1 2 12.75v-8.5Zm1.5 0a.75.75 0 0 1 .75-.75h11.5a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-.75.75H4.25a.75.75 0 0 1-.75-.75v-7.5Z" clip-rule="evenodd" />
-            </svg>
-            <span x-text="showOutput ? 'Hide Terminal Output' : 'Show Terminal Output'"></span>
-        </button>
-
-        {{-- Emergency Stop Button --}}
+        {{-- Emergency Stop Button - only shown when script is running --}}
         @if($scriptExecution['isRunning'] ?? false)
         <button
             type="button"

@@ -10,6 +10,80 @@
     <div class="flex-1 text-center text-xs font-medium text-slate-500 dark:text-white/50 tracking-wide">{{ $title }}</div>
     {{-- Header Actions --}}
     <div class="flex items-center gap-2">
+        {{-- Scripts Dropdown Button --}}
+        @if(!empty($this->scripts))
+        <div class="relative" x-data="{ showScriptsDropdown: false }">
+            <button
+                type="button"
+                @click="showScriptsDropdown = !showScriptsDropdown"
+                @click.away="showScriptsDropdown = false"
+                class="flex items-center justify-center w-7 h-7 rounded-full transition-all duration-200"
+                :class="{
+                    'bg-purple-500/20 text-purple-600 ring-2 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900 shadow-[0_0_15px_rgba(168,85,247,0.5)] animate-pulse': $wire.isScriptRunning(),
+                    'bg-purple-500/20 text-purple-600 ring-1 ring-purple-500/40 dark:bg-purple-500/30 dark:text-purple-400 dark:ring-purple-500/50': showScriptsDropdown && !$wire.isScriptRunning(),
+                    'bg-slate-300/50 text-slate-500 hover:bg-slate-300 hover:text-slate-700 dark:bg-white/5 dark:text-white/40 dark:hover:bg-white/10 dark:hover:text-white/60': !showScriptsDropdown && !$wire.isScriptRunning()
+                }"
+                :disabled="!isConnected || $wire.isScriptRunning()"
+                :title="$wire.isScriptRunning() ? 'Script running...' : 'Run scripts'"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                    <path fill-rule="evenodd" d="M6.28 5.22a.75.75 0 0 1 0 1.06L2.56 10l3.72 3.72a.75.75 0 0 1-1.06 1.06L.97 10.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Zm7.44 0a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L17.44 10l-3.72-3.72a.75.75 0 0 1 0-1.06ZM11.377 2.011a.75.75 0 0 1 .612.867l-2.5 14.5a.75.75 0 0 1-1.478-.255l2.5-14.5a.75.75 0 0 1 .866-.612Z" clip-rule="evenodd" />
+                </svg>
+            </button>
+
+            {{-- Scripts Dropdown Menu --}}
+            <div
+                x-show="showScriptsDropdown"
+                x-transition:enter="transition ease-out duration-100"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-75"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="absolute right-0 mt-2 w-64 rounded-lg bg-white dark:bg-zinc-800 shadow-lg ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden"
+                @click.away="showScriptsDropdown = false"
+            >
+                <div class="px-3 py-2 border-b border-slate-200 dark:border-white/10">
+                    <p class="text-xs font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wide">Available Scripts</p>
+                </div>
+                <div class="py-1 max-h-64 overflow-y-auto">
+                    @foreach($this->getAuthorizedScripts() as $script)
+                    <button
+                        type="button"
+                        wire:click="runScript('{{ $script['key'] }}')"
+                        @click="showScriptsDropdown = false"
+                        class="w-full px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-white/5 transition-colors {{ $script['authorized'] ? '' : 'opacity-50 cursor-not-allowed' }}"
+                        {{ $script['authorized'] ? '' : 'disabled' }}
+                        title="{{ $script['authorized'] ? ($script['description'] ?? '') : 'Unauthorized commands: ' . implode(', ', $script['unauthorizedCommands'] ?? []) }}"
+                    >
+                        <div class="flex items-center gap-2">
+                            @if($script['icon'] ?? false)
+                            <x-filament::icon :icon="$script['icon']" class="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" />
+                            @else
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0">
+                                <path fill-rule="evenodd" d="M6.28 5.22a.75.75 0 0 1 0 1.06L2.56 10l3.72 3.72a.75.75 0 0 1-1.06 1.06L.97 10.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                            </svg>
+                            @endif
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-slate-800 dark:text-zinc-200 truncate">{{ $script['label'] }}</p>
+                                @if($script['description'] ?? false)
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 truncate">{{ $script['description'] }}</p>
+                                @endif
+                                @if(!($script['authorized'] ?? true))
+                                <p class="text-xs text-red-500 dark:text-red-400 truncate mt-0.5">
+                                    Unauthorized: {{ implode(', ', array_slice($script['unauthorizedCommands'] ?? [], 0, 2)) }}{{ count($script['unauthorizedCommands'] ?? []) > 2 ? '...' : '' }}
+                                </p>
+                                @endif
+                            </div>
+                            <span class="text-xs text-slate-400 dark:text-zinc-500 shrink-0">{{ $script['commandCount'] }} cmd{{ $script['commandCount'] !== 1 ? 's' : '' }}</span>
+                        </div>
+                    </button>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        @endif
+
         {{-- Info Toggle Button --}}
         <button
             type="button"

@@ -5,6 +5,7 @@ namespace MWGuerra\WebTerminal\Schemas\Components;
 use Closure;
 use Filament\Schemas\Components\Livewire;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
+use MWGuerra\WebTerminal\Data\Script;
 use MWGuerra\WebTerminal\Enums\ConnectionType;
 use MWGuerra\WebTerminal\Livewire\WebTerminal as WebTerminalComponent;
 
@@ -71,6 +72,10 @@ class WebTerminal extends Livewire
 
     protected int|Closure|null $inactivityTimeout = null;
 
+    // Scripts configuration
+    /** @var array<int, Script|array<string, mixed>>|Closure */
+    protected array|Closure $scripts = [];
+
     public static function make(Closure|string $component = null, Closure|array $data = []): static
     {
         $static = app(static::class, [
@@ -122,6 +127,7 @@ class WebTerminal extends Livewire
             'logMetadata' => $this->getLogMetadata(),
             'disconnectOnNavigate' => $this->getDisconnectOnNavigate(),
             'inactivityTimeout' => $this->getInactivityTimeout(),
+            'scripts' => $this->getScripts(),
         ], fn ($value) => $value !== null);
     }
 
@@ -907,6 +913,110 @@ class WebTerminal extends Livewire
         }
 
         return $this->evaluate($value);
+    }
+
+    // ========================================
+    // Scripts Configuration
+    // ========================================
+
+    /**
+     * Configure scripts that can be executed in the terminal.
+     *
+     * Scripts are predefined command sequences that can be run from a dropdown menu.
+     * Accepts an array of Script objects or array configurations, or a Closure
+     * for dynamic script generation.
+     *
+     * @example Fluent API (recommended):
+     * ->scripts([
+     *     Script::make('deploy')
+     *         ->label('Deploy Application')
+     *         ->description('Pull latest code and restart services')
+     *         ->icon('heroicon-o-rocket-launch')
+     *         ->commands([
+     *             'git pull origin main',
+     *             'composer install --no-dev',
+     *             'php artisan migrate --force',
+     *         ])
+     *         ->stopOnError(),
+     *
+     *     Script::make('logs')
+     *         ->label('View Recent Logs')
+     *         ->icon('heroicon-o-document-text')
+     *         ->commands(['tail -100 storage/logs/laravel.log'])
+     *         ->continueOnError(),
+     * ])
+     *
+     * @example Array syntax (also supported):
+     * ->scripts([
+     *     [
+     *         'key' => 'backup',
+     *         'label' => 'Backup Database',
+     *         'commands' => ['php artisan backup:run'],
+     *     ],
+     * ])
+     *
+     * @example Dynamic from database with closure:
+     * ->scripts(fn () => auth()->user()->scripts->map(
+     *     fn ($s) => Script::make($s->slug)
+     *         ->label($s->name)
+     *         ->commands($s->commands)
+     * )->toArray())
+     *
+     * @example Elevated script (bypasses allowedCommands validation):
+     * ->scripts([
+     *     Script::make('full-deploy')
+     *         ->label('Full Deploy')
+     *         ->elevated()
+     *         ->commands([
+     *             'git pull origin main',
+     *             'sudo systemctl restart php-fpm',
+     *         ]),
+     * ])
+     *
+     * @example Script that causes disconnection:
+     * ->scripts([
+     *     Script::make('reboot')
+     *         ->label('Reboot Server')
+     *         ->elevated()
+     *         ->willDisconnect()
+     *         ->beforeMessage('This will reboot the server.')
+     *         ->disconnectMessage('Server is rebooting...')
+     *         ->confirmBeforeRun()
+     *         ->commands(['sudo reboot']),
+     * ])
+     *
+     * @param  array<int, Script|array<string, mixed>>|Closure  $scripts
+     */
+    public function scripts(array|Closure $scripts): static
+    {
+        $this->scripts = $scripts;
+
+        return $this;
+    }
+
+    /**
+     * Get the configured scripts.
+     *
+     * Normalizes all scripts to array format for the Livewire component.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getScripts(): array
+    {
+        $scripts = $this->evaluate($this->scripts);
+
+        if (! is_array($scripts)) {
+            return [];
+        }
+
+        return array_values(array_map(function ($script) {
+            if ($script instanceof Script) {
+                return $script->toArray();
+            }
+
+            // Validate array has required keys by converting through Script
+            return Script::fromArray($script)->toArray();
+        }, $scripts));
     }
 }
 

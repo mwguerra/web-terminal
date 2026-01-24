@@ -12,10 +12,26 @@
     <div class="flex items-center gap-2">
         {{-- Scripts Dropdown Button --}}
         @if(!empty($this->scripts))
-        <div class="relative" x-data="{ showScriptsDropdown: false, isScriptActive: @entangle('scriptExecution').live, connectedState: @entangle('isConnected').live }">
+        <div class="relative" x-data="{
+            showScriptsDropdown: false,
+            isScriptActive: @entangle('scriptExecution').live,
+            connectedState: @entangle('isConnected').live,
+            dropdownMaxWidth: 320,
+            dropdownMaxHeight: 320,
+            updateDropdownSize() {
+                const terminal = this.$el.closest('.secure-web-terminal');
+                if (!terminal) return;
+                const header = terminal.querySelector(':scope > div.border-b');
+                const input = terminal.querySelector(':scope > div.border-t');
+                const headerHeight = header ? header.offsetHeight : 0;
+                const inputHeight = input ? input.offsetHeight : 0;
+                this.dropdownMaxWidth = Math.max(280, terminal.offsetWidth / 2);
+                this.dropdownMaxHeight = Math.max(200, terminal.offsetHeight - headerHeight - inputHeight - 20);
+            }
+        }" x-init="updateDropdownSize(); window.addEventListener('resize', () => updateDropdownSize())">
             <button
                 type="button"
-                @click="showScriptsDropdown = !showScriptsDropdown"
+                @click="showScriptsDropdown = !showScriptsDropdown; if(showScriptsDropdown) updateDropdownSize()"
                 @click.away="showScriptsDropdown = false"
                 class="flex items-center justify-center w-7 h-7 rounded-full transition-all duration-200"
                 :class="{
@@ -40,13 +56,14 @@
                 x-transition:leave="transition ease-in duration-75"
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-95"
-                class="absolute right-0 mt-2 w-80 rounded-lg bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden"
+                class="absolute right-0 mt-2 min-w-72 rounded-lg bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden"
+                :style="{ maxWidth: dropdownMaxWidth + 'px' }"
                 @click.away="showScriptsDropdown = false"
             >
                 <div class="px-3 py-2 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-gray-800/50">
                     <p class="text-xs font-medium text-slate-500 dark:text-gray-400 uppercase tracking-wide">Available Scripts</p>
                 </div>
-                <div class="py-1 max-h-80 overflow-y-auto">
+                <div class="py-1 overflow-y-auto" :style="{ maxHeight: (dropdownMaxHeight - 40) + 'px' }">
                     @foreach($this->getAuthorizedScripts() as $script)
                     <button
                         type="button"

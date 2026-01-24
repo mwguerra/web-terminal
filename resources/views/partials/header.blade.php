@@ -12,19 +12,19 @@
     <div class="flex items-center gap-2">
         {{-- Scripts Dropdown Button --}}
         @if(!empty($this->scripts))
-        <div class="relative" x-data="{ showScriptsDropdown: false }">
+        <div class="relative" x-data="{ showScriptsDropdown: false, isScriptActive: @entangle('scriptExecution').live, connectedState: @entangle('isConnected').live }">
             <button
                 type="button"
                 @click="showScriptsDropdown = !showScriptsDropdown"
                 @click.away="showScriptsDropdown = false"
                 class="flex items-center justify-center w-7 h-7 rounded-full transition-all duration-200"
                 :class="{
-                    'bg-purple-500/20 text-purple-600 ring-2 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900 shadow-[0_0_15px_rgba(168,85,247,0.5)] animate-pulse': $wire.isScriptRunning(),
-                    'bg-purple-500/20 text-purple-600 ring-1 ring-purple-500/40 dark:bg-purple-500/30 dark:text-purple-400 dark:ring-purple-500/50': showScriptsDropdown && !$wire.isScriptRunning(),
-                    'bg-slate-300/50 text-slate-500 hover:bg-slate-300 hover:text-slate-700 dark:bg-white/5 dark:text-white/40 dark:hover:bg-white/10 dark:hover:text-white/60': !showScriptsDropdown && !$wire.isScriptRunning()
+                    'bg-purple-500/20 text-purple-600 ring-2 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-900 shadow-[0_0_15px_rgba(168,85,247,0.5)] animate-pulse': isScriptActive && isScriptActive.isRunning === true,
+                    'bg-purple-500/20 text-purple-600 ring-1 ring-purple-500/40 dark:bg-purple-500/30 dark:text-purple-400 dark:ring-purple-500/50': showScriptsDropdown && !(isScriptActive && isScriptActive.isRunning),
+                    'bg-slate-300/50 text-slate-500 hover:bg-slate-300 hover:text-slate-700 dark:bg-white/5 dark:text-white/40 dark:hover:bg-white/10 dark:hover:text-white/60': !showScriptsDropdown && !(isScriptActive && isScriptActive.isRunning)
                 }"
-                :disabled="!isConnected || $wire.isScriptRunning()"
-                :title="$wire.isScriptRunning() ? 'Script running...' : 'Run scripts'"
+                x-bind:disabled="!connectedState || (isScriptActive && isScriptActive.isRunning === true)"
+                :title="isScriptActive && isScriptActive.isRunning ? 'Script running...' : 'Run scripts'"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                     <path fill-rule="evenodd" d="M6.28 5.22a.75.75 0 0 1 0 1.06L2.56 10l3.72 3.72a.75.75 0 0 1-1.06 1.06L.97 10.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Zm7.44 0a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L17.44 10l-3.72-3.72a.75.75 0 0 1 0-1.06ZM11.377 2.011a.75.75 0 0 1 .612.867l-2.5 14.5a.75.75 0 0 1-1.478-.255l2.5-14.5a.75.75 0 0 1 .866-.612Z" clip-rule="evenodd" />

@@ -34,8 +34,9 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
     </div>
-    {{-- Script running indicator and controls --}}
-    <div x-show="$wire.isScriptRunning()" x-cloak class="flex items-center gap-2 ml-3">
+    {{-- Script running indicator and controls - Only rendered when script is actually running --}}
+    @if($this->isScriptRunning())
+    <div class="flex items-center gap-2 ml-3">
         <span class="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-purple-600 dark:text-purple-400 bg-purple-400/10 border border-purple-500/30 dark:border-purple-400/20 rounded-full leading-none">
             <svg class="w-3 h-3 shrink-0 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -66,9 +67,11 @@
             <span>Stop</span>
         </button>
     </div>
+    @endif
 
     {{-- Interactive mode indicator and cancel button (when not running script) --}}
-    <div x-show="isInteractive && !$wire.isScriptRunning()" x-cloak class="flex items-center gap-2 ml-3">
+    @if($isInteractive && !$this->isScriptRunning())
+    <div class="flex items-center gap-2 ml-3">
         <span class="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-amber-600 dark:text-amber-400 bg-amber-400/10 border border-amber-500/30 dark:border-amber-400/20 rounded-full leading-none">
             <svg class="w-3 h-3 shrink-0 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10" stroke-opacity="0.3" />
@@ -88,6 +91,9 @@
             <span>Cancel</span>
         </button>
     </div>
+    @endif
+
+    {{-- Connection type badge - always visible --}}
     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 ml-3 text-[11px] font-medium text-lime-600 dark:text-lime-400 bg-lime-400/10 border border-lime-500/30 dark:border-lime-400/20 rounded-full uppercase tracking-wide leading-none">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 shrink-0 opacity-80">
             <path fill-rule="evenodd" d="M2 4.25A2.25 2.25 0 0 1 4.25 2h11.5A2.25 2.25 0 0 1 18 4.25v8.5A2.25 2.25 0 0 1 15.75 15h-3.105a3.501 3.501 0 0 0 1.1 1.677A.75.75 0 0 1 13.26 18H6.74a.75.75 0 0 1-.484-1.323A3.501 3.501 0 0 0 7.355 15H4.25A2.25 2.25 0 0 1 2 12.75v-8.5Zm1.5 0a.75.75 0 0 1 .75-.75h11.5a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-.75.75H4.25a.75.75 0 0 1-.75-.75v-7.5Z" clip-rule="evenodd" />

@@ -1,7 +1,7 @@
-{{-- Script Execution Slideover Panel - positioned within terminal content area --}}
+{{-- Script Execution Slideover Panel - positioned within terminal content area (below header, above input) --}}
 @if($showScriptPanel && !empty($scriptExecution))
 <div
-    class="absolute top-10 bottom-12 right-0 w-80 max-h-[calc(100%-5.5rem)] bg-white dark:bg-zinc-900 shadow-2xl border-l border-slate-200 dark:border-white/10 z-40 flex flex-col rounded-bl-lg overflow-hidden"
+    class="absolute top-[45px] bottom-[45px] right-0 w-80 max-w-[70%] bg-white dark:bg-zinc-900 shadow-2xl border-l border-slate-200 dark:border-white/10 z-40 flex flex-col rounded-bl-lg overflow-hidden"
     x-data="{ showOutput: @entangle('showScriptOutput') }"
     x-transition:enter="transition ease-out duration-300"
     x-transition:enter-start="translate-x-full"

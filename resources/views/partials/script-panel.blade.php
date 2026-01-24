@@ -139,10 +139,9 @@
         @endforeach
     </div>
 
-    {{-- Panel Footer --}}
-    <div class="px-4 py-3 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-gray-800/50 space-y-2">
-        {{-- Emergency Stop Button - only shown when script is running --}}
-        @if($scriptExecution['isRunning'] ?? false)
+    {{-- Panel Footer - only shown when script is running --}}
+    @if($scriptExecution['isRunning'] ?? false)
+    <div class="px-4 py-3 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-gray-800/50">
         <button
             type="button"
             wire:click="cancelScript"
@@ -153,7 +152,7 @@
             </svg>
             <span>Emergency Stop (Ctrl+C)</span>
         </button>
-        @endif
     </div>
+    @endif
 </div>
 @endif

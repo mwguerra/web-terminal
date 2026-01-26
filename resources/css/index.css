@@ -3,6 +3,9 @@
 @source '../../src/**/*.php';
 @variant dark (&:where(.dark, .dark *));
 
+/* Hide elements until Alpine.js initializes */
+[x-cloak] { display: none !important; }
+
 @theme {
     --color-primary-50: var(--primary-50);
     --color-primary-100: var(--primary-100);

@@ -10,3 +10,12 @@ composer.lock
 Thumbs.db
 .taskmanager/
 coverage.txt
+
+# Playwright test artifacts
+/screenshots/
+/test-results/
+/tests/screenshots/
+/tests/e2e/
+playwright.config.js
+test-scripts.mjs
+debug-csrf.mjs

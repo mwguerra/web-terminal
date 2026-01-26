@@ -11,7 +11,10 @@ use MWGuerra\WebTerminal\Connections\ConnectionHandlerFactory;
 use MWGuerra\WebTerminal\Contracts\ConnectionHandlerInterface;
 use MWGuerra\WebTerminal\Data\CommandResult;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
+use MWGuerra\WebTerminal\Data\Script;
+use MWGuerra\WebTerminal\Data\ScriptExecution;
 use MWGuerra\WebTerminal\Data\TerminalOutput;
+use MWGuerra\WebTerminal\Enums\ScriptCommandStatus;
 use MWGuerra\WebTerminal\Enums\ConnectionType;
 use MWGuerra\WebTerminal\Events\CommandExecutedEvent;
 use MWGuerra\WebTerminal\Exceptions\ConnectionException;
@@ -357,6 +360,40 @@ class WebTerminal extends Component
     #[Locked]
     public array $logMetadata = [];
 
+    // ========================================
+    // Scripts Configuration
+    // ========================================
+
+    /**
+     * Available scripts for this terminal.
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    #[Locked]
+    public array $scripts = [];
+
+    /**
+     * Current script execution state.
+     *
+     * @var array<string, mixed>
+     */
+    public array $scriptExecution = [];
+
+    /**
+     * Whether the script panel slideover is visible.
+     */
+    public bool $showScriptPanel = false;
+
+    /**
+     * Whether to show terminal output in the script panel.
+     */
+    public bool $showScriptOutput = true;
+
+    /**
+     * Whether script is waiting for user input (e.g., password prompt).
+     */
+    public bool $scriptAwaitingInput = false;
+
     /**
      * Current terminal session ID (generated on connect).
      */
@@ -396,6 +433,7 @@ class WebTerminal extends Component
         array $logMetadata = [],
         ?bool $disconnectOnNavigate = null,
         ?int $inactivityTimeout = null,
+        array $scripts = [],
     ): void {
         // Generate unique component ID for session-based config storage
         $this->componentId = (string) \Illuminate\Support\Str::uuid();
@@ -481,6 +519,14 @@ class WebTerminal extends Component
         $this->inactivityTimeout = $inactivityTimeout
             ?? config('web-terminal.session.inactivity_timeout', 3600);
 
+        // Set scripts configuration
+        $this->scripts = $scripts;
+
+        // Reset script execution state (prevents stale state from previous sessions)
+        $this->scriptExecution = [];
+        $this->showScriptPanel = false;
+        $this->scriptAwaitingInput = false;
+
         // Initialize current directory
         // For remote connections, don't use local getcwd()
         $configuredDir = $this->getConnectionConfig()['working_directory'] ?? null;
@@ -535,6 +581,18 @@ class WebTerminal extends Component
         if ($this->isInteractive && $this->activeSessionId !== '') {
             $this->sendInput();
 
+            return;
+        }
+
+        // If script is running and awaiting input, redirect to sendInput
+        if ($this->isScriptRunning() && $this->scriptAwaitingInput) {
+            $this->sendInput();
+
+            return;
+        }
+
+        // Block new commands while script is running
+        if ($this->isScriptRunning()) {
             return;
         }
 
@@ -696,6 +754,11 @@ class WebTerminal extends Component
     {
         if (! $this->isConnected) {
             return;
+        }
+
+        // Cancel any running script first
+        if ($this->isScriptRunning()) {
+            $this->cancelScript();
         }
 
         // Cancel any running process first
@@ -1402,6 +1465,13 @@ class WebTerminal extends Component
      */
     public function pollOutput(): void
     {
+        // If script is running, use script-specific polling
+        if ($this->isScriptRunning()) {
+            $this->pollOutputForScript();
+
+            return;
+        }
+
         if (! $this->isInteractive || $this->activeSessionId === '') {
             return;
         }
@@ -1784,6 +1854,520 @@ class WebTerminal extends Component
         } catch (\Throwable) {
             return false;
         }
+    }
+
+    // ========================================
+    // Script Execution Methods
+    // ========================================
+
+    /**
+     * Check if a script is currently running.
+     */
+    public function isScriptRunning(): bool
+    {
+        if (empty($this->scriptExecution)) {
+            return false;
+        }
+
+        return $this->scriptExecution['isRunning'] ?? false;
+    }
+
+    /**
+     * Get a script by its key.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getScript(string $key): ?array
+    {
+        foreach ($this->scripts as $script) {
+            if (($script['key'] ?? '') === $key) {
+                return $script;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Run a script by its key.
+     */
+    public function runScript(string $key): void
+    {
+        // Check if already running a script
+        if ($this->isScriptRunning()) {
+            $this->addOutput(TerminalOutput::error('A script is already running.'));
+
+            return;
+        }
+
+        // Check if terminal is connected
+        if (! $this->isConnected) {
+            $this->addOutput(TerminalOutput::error('Terminal must be connected to run scripts.'));
+
+            return;
+        }
+
+        // Find the script
+        $scriptData = $this->getScript($key);
+        if ($scriptData === null) {
+            $this->addOutput(TerminalOutput::error("Script '{$key}' not found."));
+
+            return;
+        }
+
+        $script = Script::fromArray($scriptData);
+
+        // Check if script is authorized (unless elevated)
+        if (! $script->isElevated() && ! $this->allowAllCommands) {
+            $unauthorized = $script->getUnauthorizedCommands($this->allowedCommands);
+            if (! empty($unauthorized)) {
+                $this->addOutput(TerminalOutput::error(
+                    'Script contains unauthorized commands: ' . implode(', ', $unauthorized)
+                ));
+
+                return;
+            }
+        }
+
+        // Show the script panel
+        $this->showScriptPanel = true;
+
+        // Initialize execution state
+        $execution = new ScriptExecution();
+        $execution->start($script->getKey(), $script->getLabel(), $script->getCommands());
+        $this->scriptExecution = $execution->toArray();
+
+        // Log script start
+        if ($this->terminalSessionId !== '') {
+            $logger = $this->getLogger();
+            $logger->logCommand($this->terminalSessionId, 'SCRIPT_START:' . $script->getKey(), [
+                'connection_type' => $this->getConnectionTypeForLog(),
+                'is_script' => true,
+                'script_key' => $script->getKey(),
+                'script_label' => $script->getLabel(),
+                'script_command_total' => $script->commandCount(),
+            ]);
+        }
+
+        // Show script start message
+        $this->addOutput(TerminalOutput::info("Starting script: {$script->getLabel()}"));
+
+        // Handle beforeMessage for scripts that will disconnect
+        if ($script->causesDisconnection() && $script->getBeforeMessage()) {
+            $this->addOutput(TerminalOutput::info($script->getBeforeMessage()));
+        }
+
+        // Start executing commands
+        $this->executeNextScriptCommand();
+    }
+
+    /**
+     * Execute the next command in the script queue.
+     */
+    public function executeNextScriptCommand(): void
+    {
+        if (! $this->isScriptRunning()) {
+            return;
+        }
+
+        $execution = ScriptExecution::fromArray($this->scriptExecution);
+
+        // Check if there are more commands
+        if (! $execution->hasMoreCommands()) {
+            $this->finishScriptExecution(false);
+
+            return;
+        }
+
+        // Get the current command
+        $command = $execution->getCurrentCommand();
+        if ($command === null) {
+            $this->finishScriptExecution(false);
+
+            return;
+        }
+
+        // Mark command as running
+        $execution->markCurrentAsRunning();
+        $this->scriptExecution = $execution->toArray();
+
+        // Execute the command
+        $this->executeScriptCommand($command);
+    }
+
+    /**
+     * Execute a single script command.
+     */
+    protected function executeScriptCommand(string $command): void
+    {
+        $execution = ScriptExecution::fromArray($this->scriptExecution);
+        $scriptData = $this->getScript($execution->getScriptKey() ?? '');
+        $script = $scriptData ? Script::fromArray($scriptData) : null;
+
+        // Add command to output
+        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt() . $command));
+
+        $startTime = microtime(true);
+
+        try {
+            // Handle cd command specially
+            if ($this->isCdCommand($command)) {
+                $this->handleCdCommand($command);
+                $executionTime = microtime(true) - $startTime;
+                $this->handleScriptCommandResult(0, '', $executionTime);
+
+                return;
+            }
+
+            // For scripts, we use interactive mode to handle potential input prompts
+            $handler = $this->getConnectionHandler();
+            $workingDir = ($this->currentDirectory === '~') ? null : $this->currentDirectory;
+            $handler->setWorkingDirectory($workingDir);
+
+            // Start in interactive mode for script commands
+            $this->interactiveOutputStart = count($this->output);
+            $this->interactiveCommand = $command;
+            $this->interactiveStartTime = $startTime;
+
+            $this->activeSessionId = $handler->startInteractive($command);
+            $this->isInteractive = true;
+            $this->isExecuting = true;
+            $this->scriptAwaitingInput = true;
+
+            // Poll for initial output
+            $maxPolls = $this->useLoginShell ? 12 : 4;
+            $pollInterval = 50000;
+
+            for ($i = 0; $i < $maxPolls; $i++) {
+                usleep($pollInterval);
+
+                // Read output
+                $output = $handler->readOutput($this->activeSessionId);
+                if ($output !== null) {
+                    $this->appendInteractiveOutput($output);
+                }
+
+                // Check if process finished
+                if (! $handler->isProcessRunning($this->activeSessionId)) {
+                    $exitCode = $handler->getProcessExitCode($this->activeSessionId);
+                    $executionTime = microtime(true) - $startTime;
+
+                    // Get output for logging
+                    $outputText = $this->extractInteractiveOutputText();
+
+                    // Clean up interactive session
+                    $handler->terminateProcess($this->activeSessionId);
+                    $this->resetInteractiveState();
+                    $this->scriptAwaitingInput = false;
+
+                    // Handle result
+                    $this->handleScriptCommandResult($exitCode ?? 0, $outputText, $executionTime);
+
+                    return;
+                }
+            }
+
+            // Process is still running, let polling continue
+            $this->dispatch('terminal-interactive-started');
+
+        } catch (\Throwable $e) {
+            $executionTime = microtime(true) - $startTime;
+            $this->addOutput(TerminalOutput::error('Error: ' . $e->getMessage()));
+            $this->resetInteractiveState();
+            $this->scriptAwaitingInput = false;
+            $this->handleScriptCommandResult(1, $e->getMessage(), $executionTime);
+        }
+    }
+
+    /**
+     * Handle the result of a script command execution.
+     */
+    public function handleScriptCommandResult(int $exitCode, string $output, float $executionTime): void
+    {
+        if (! $this->isScriptRunning()) {
+            return;
+        }
+
+        $execution = ScriptExecution::fromArray($this->scriptExecution);
+        $scriptData = $this->getScript($execution->getScriptKey() ?? '');
+        $script = $scriptData ? Script::fromArray($scriptData) : null;
+
+        $currentIndex = $execution->getCurrentCommandIndex();
+        $totalCommands = $execution->getTotalCommands();
+        $command = $execution->getCurrentCommand();
+
+        // Log the command
+        if ($this->terminalSessionId !== '' && $command !== null) {
+            $logger = $this->getLogger();
+            $config = $this->getConnectionConfig();
+
+            $logger->logCommand($this->terminalSessionId, $command, [
+                'connection_type' => $this->getConnectionTypeForLog(),
+                'host' => $config['host'] ?? null,
+                'port' => $config['port'] ?? null,
+                'ssh_username' => $config['username'] ?? null,
+                'exit_code' => $exitCode,
+                'execution_time_seconds' => (int) ceil($executionTime),
+                'output' => $output !== '' ? $output : null,
+                'is_script' => true,
+                'script_key' => $execution->getScriptKey(),
+                'script_label' => $execution->getScriptLabel(),
+                'script_command_index' => $currentIndex,
+                'script_command_total' => $totalCommands,
+            ]);
+        }
+
+        // Update execution state based on result
+        if ($exitCode === 0) {
+            $execution->markCurrentAsSuccess($exitCode, $output, $executionTime);
+        } else {
+            $execution->markCurrentAsFailed($exitCode, $output, $executionTime);
+
+            // Check if we should stop on error
+            if ($script?->shouldStopOnError()) {
+                $execution->markRemainingAsSkipped();
+                $this->scriptExecution = $execution->toArray();
+                $this->finishScriptExecution(true);
+
+                return;
+            }
+        }
+
+        // Advance to next command
+        $execution->advanceToNext();
+        $this->scriptExecution = $execution->toArray();
+
+        // Check for disconnection script
+        if ($script?->causesDisconnection() && ! $execution->hasMoreCommands()) {
+            $this->handleScriptDisconnection();
+
+            return;
+        }
+
+        // Execute next command
+        $this->executeNextScriptCommand();
+    }
+
+    /**
+     * Handle script-triggered disconnection (reboot, shutdown, etc.).
+     */
+    protected function handleScriptDisconnection(): void
+    {
+        $execution = ScriptExecution::fromArray($this->scriptExecution);
+        $scriptData = $this->getScript($execution->getScriptKey() ?? '');
+        $script = $scriptData ? Script::fromArray($scriptData) : null;
+
+        if ($script?->getDisconnectMessage()) {
+            $this->addOutput(TerminalOutput::info($script->getDisconnectMessage()));
+        }
+
+        // Mark as completed before disconnect
+        $execution->finish();
+        $this->scriptExecution = $execution->toArray();
+
+        // Log script end
+        $this->logScriptEnd($execution);
+
+        // Graceful disconnect
+        $this->disconnect();
+    }
+
+    /**
+     * Finish script execution.
+     */
+    public function finishScriptExecution(bool $failed = false): void
+    {
+        if (! $this->isScriptRunning()) {
+            return;
+        }
+
+        $execution = ScriptExecution::fromArray($this->scriptExecution);
+        $execution->finish();
+        $this->scriptExecution = $execution->toArray();
+
+        // Log script end
+        $this->logScriptEnd($execution);
+
+        // Show completion message
+        if ($failed) {
+            $this->addOutput(TerminalOutput::error(
+                "Script '{$execution->getScriptLabel()}' failed at command " .
+                ($execution->getCurrentCommandIndex() + 1) . " of {$execution->getTotalCommands()}"
+            ));
+        } else {
+            $this->addOutput(TerminalOutput::info(
+                "Script '{$execution->getScriptLabel()}' completed successfully. " .
+                "{$execution->getSuccessCount()} of {$execution->getTotalCommands()} commands succeeded."
+            ));
+        }
+
+        // Dispatch event for UI update
+        $this->dispatch('script-finished');
+    }
+
+    /**
+     * Log the end of a script execution.
+     */
+    protected function logScriptEnd(ScriptExecution $execution): void
+    {
+        if ($this->terminalSessionId === '') {
+            return;
+        }
+
+        $logger = $this->getLogger();
+        $logger->logCommand($this->terminalSessionId, 'SCRIPT_END:' . ($execution->getScriptKey() ?? ''), [
+            'connection_type' => $this->getConnectionTypeForLog(),
+            'is_script' => true,
+            'script_key' => $execution->getScriptKey(),
+            'script_label' => $execution->getScriptLabel(),
+            'script_success_count' => $execution->getSuccessCount(),
+            'script_failed_count' => $execution->getFailedCount(),
+            'script_total_commands' => $execution->getTotalCommands(),
+            'script_cancelled' => $execution->isCancelled(),
+            'exit_code' => $execution->isSuccessful() ? 0 : 1,
+        ]);
+    }
+
+    /**
+     * Cancel the currently running script (emergency stop).
+     */
+    public function cancelScript(): void
+    {
+        if (! $this->isScriptRunning()) {
+            return;
+        }
+
+        // Cancel any running interactive process first
+        if ($this->isInteractive && $this->activeSessionId !== '') {
+            $this->cancelProcess();
+        }
+
+        $execution = ScriptExecution::fromArray($this->scriptExecution);
+        $execution->cancel();
+        $this->scriptExecution = $execution->toArray();
+
+        // Reset script-related state
+        $this->scriptAwaitingInput = false;
+
+        // Log script cancellation
+        $this->logScriptEnd($execution);
+
+        $this->addOutput(TerminalOutput::info(
+            "Script '{$execution->getScriptLabel()}' cancelled by user. " .
+            "{$execution->getCompletedCount()} of {$execution->getTotalCommands()} commands completed."
+        ));
+
+        // Dispatch event for UI update
+        $this->dispatch('script-cancelled');
+    }
+
+    /**
+     * Close the script panel (only when not running).
+     */
+    public function closeScriptPanel(): void
+    {
+        if ($this->isScriptRunning()) {
+            return;
+        }
+
+        $this->showScriptPanel = false;
+        $this->scriptExecution = [];
+    }
+
+    /**
+     * Toggle terminal output visibility in script panel.
+     */
+    public function toggleScriptOutput(): void
+    {
+        $this->showScriptOutput = ! $this->showScriptOutput;
+    }
+
+    /**
+     * Override pollOutput to handle script command completion.
+     */
+    public function pollOutputForScript(): void
+    {
+        if (! $this->isInteractive || $this->activeSessionId === '' || ! $this->isScriptRunning()) {
+            // Fall back to regular polling if not in script mode
+            $this->pollOutput();
+
+            return;
+        }
+
+        try {
+            $handler = $this->getConnectionHandler();
+
+            // Read new output
+            $output = $handler->readOutput($this->activeSessionId);
+
+            if ($output !== null) {
+                $isFullScreen = $output['full_screen'] ?? false;
+                $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
+
+                if ($isFullScreen && $hasContent) {
+                    $this->replaceInteractiveOutput($output);
+                } else {
+                    $this->appendInteractiveOutput($output);
+                }
+            }
+
+            // Check if process has finished
+            if (! $handler->isProcessRunning($this->activeSessionId)) {
+                $exitCode = $handler->getProcessExitCode($this->activeSessionId);
+                $executionTime = $this->interactiveStartTime > 0
+                    ? microtime(true) - $this->interactiveStartTime
+                    : 0;
+
+                // Get output for logging
+                $outputText = $this->extractInteractiveOutputText();
+
+                // Clean up interactive session
+                $handler->terminateProcess($this->activeSessionId);
+                $this->resetInteractiveState();
+                $this->scriptAwaitingInput = false;
+
+                // Handle script command result
+                $this->handleScriptCommandResult($exitCode ?? 0, $outputText, $executionTime);
+            }
+        } catch (\Throwable $e) {
+            $this->addOutput(TerminalOutput::error('Error reading output: ' . $e->getMessage()));
+            $executionTime = $this->interactiveStartTime > 0
+                ? microtime(true) - $this->interactiveStartTime
+                : 0;
+            $this->resetInteractiveState();
+            $this->scriptAwaitingInput = false;
+            $this->handleScriptCommandResult(1, $e->getMessage(), $executionTime);
+        }
+    }
+
+    /**
+     * Get scripts that are authorized for execution.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getAuthorizedScripts(): array
+    {
+        $authorized = [];
+
+        foreach ($this->scripts as $scriptData) {
+            $script = Script::fromArray($scriptData);
+
+            // Script is authorized if:
+            // 1. It's elevated (bypasses command whitelist)
+            // 2. All commands are allowed
+            // 3. All its commands are in the allowed list
+            if ($script->isElevated() || $this->allowAllCommands || $script->canRunWithAllowedCommands($this->allowedCommands)) {
+                $scriptData['authorized'] = true;
+                $scriptData['unauthorizedCommands'] = [];
+            } else {
+                $scriptData['authorized'] = false;
+                $scriptData['unauthorizedCommands'] = $script->getUnauthorizedCommands($this->allowedCommands);
+            }
+
+            $authorized[] = $scriptData;
+        }
+
+        return $authorized;
     }
 
     // ========================================

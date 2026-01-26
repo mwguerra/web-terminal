@@ -185,11 +185,18 @@
             // Record activity on any keypress
             this.recordActivity();
 
-            // Ctrl+C to cancel process
-            if (event.ctrlKey && event.key === 'c' && this.isInteractive) {
-                event.preventDefault();
-                $wire.cancelProcess();
-                return;
+            // Ctrl+C to cancel process or script
+            if (event.ctrlKey && event.key === 'c') {
+                if ($wire.isScriptRunning()) {
+                    event.preventDefault();
+                    $wire.cancelScript();
+                    return;
+                }
+                if (this.isInteractive) {
+                    event.preventDefault();
+                    $wire.cancelProcess();
+                    return;
+                }
             }
 
             if (event.key === 'ArrowUp') {
@@ -215,4 +222,6 @@
     @include('web-terminal::partials.input')
 
     @include('web-terminal::partials.interactive-controls')
+
+    @include('web-terminal::partials.script-panel')
 </div>

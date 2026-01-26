@@ -898,6 +898,8 @@ WebTerminal::make()
 
 Scripts allow you to define reusable sequences of commands that can be executed with a single click. They appear in a dropdown menu in the terminal header and provide visual feedback during execution.
 
+![Scripts Dropdown Menu](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/terminal-scripts-menu.jpg)
+
 ### Defining Scripts
 
 Use the `Script` class to define scripts with a fluent API:
@@ -1005,6 +1007,8 @@ Script::make('admin-task')
 ```
 
 ### Script Execution UI
+
+![Script Execution Status](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/terminal-scripts-status.jpg)
 
 When a script runs, a slide-over panel displays:
 - Script name and progress percentage

@@ -73,13 +73,9 @@
                         {{ $script['authorized'] ? '' : 'disabled' }}
                     >
                         <div class="flex items-center gap-3">
-                            @if($script['icon'] ?? false)
-                            <x-filament::icon :icon="$script['icon']" class="w-5 h-5 text-purple-500 dark:text-purple-400 shrink-0" />
-                            @else
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-purple-500 dark:text-purple-400 shrink-0">
                                 <path fill-rule="evenodd" d="M6.28 5.22a.75.75 0 0 1 0 1.06L2.56 10l3.72 3.72a.75.75 0 0 1-1.06 1.06L.97 10.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
                             </svg>
-                            @endif
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-slate-800 dark:text-gray-100 truncate" title="{{ $script['label'] }}">{{ $script['label'] }}</p>
                                 @if($script['description'] ?? false)

@@ -2,6 +2,13 @@
 
 A secure web terminal package for Laravel with Filament integration. Execute allowed commands on local systems or SSH servers.
 
+## Version Compatibility
+
+| Version | Filament | Laravel | Livewire | PHP  |
+|---------|----------|---------|----------|------|
+| 2.x     | 5.x     | 12.x   | 4.x     | 8.2+ |
+| 1.x     | 4.x     | 11.x   | 3.x     | 8.2+ |
+
 ## Features
 
 - **Connection types**: Local shell execution or SSH connections to remote servers
@@ -19,8 +26,11 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11.x or 12.x
-- Filament 4.x
+- Laravel 12.x
+- Filament 5.x
+- Livewire 4.x
+
+> For Laravel 11 and Filament 4 support, use version `^1.0`.
 
 > **Warning**
 >
@@ -36,9 +46,27 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 
 ## Installation
 
+### For Filament 5 / Laravel 12 (latest)
+
 ```bash
-composer require mwguerra/web-terminal
+composer require mwguerra/web-terminal:"^2.0"
 ```
+
+### For Filament 4 / Laravel 11 (legacy)
+
+```bash
+composer require mwguerra/web-terminal:"^1.0"
+```
+
+### Upgrading from v1.x to v2.x
+
+```bash
+composer require mwguerra/web-terminal:"^2.0"
+```
+
+Key changes in v2.x:
+- Requires Laravel 12.x, Filament 5.x, and Livewire 4.x
+- If you published Blade views, update any `@entangle('prop')` to `$wire.entangle('prop')` in your custom views
 
 ### Interactive Setup
 

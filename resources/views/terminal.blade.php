@@ -2,9 +2,9 @@
     class="secure-web-terminal relative font-mono text-[13px] leading-tight bg-gradient-to-b from-slate-100 to-white dark:from-[#1a1a2e] dark:to-[#16213e] text-zinc-800 dark:text-zinc-200 rounded-xl overflow-hidden flex flex-col shadow-2xl ring-1 ring-slate-200 dark:ring-white/5 text-left"
     style="height: {{ $height }}; min-height: 200px;"
     x-data="{
-        isInteractive: @entangle('isInteractive'),
-        isConnected: @entangle('isConnected'),
-        scriptExecution: @entangle('scriptExecution'),
+        isInteractive: $wire.entangle('isInteractive'),
+        isConnected: $wire.entangle('isConnected'),
+        scriptExecution: $wire.entangle('scriptExecution'),
         showInfoPanel: false,
         pollInterval: null,
         cooldownActive: false,

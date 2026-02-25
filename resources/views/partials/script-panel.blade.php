@@ -3,7 +3,7 @@
 <div
     class="absolute right-0 w-80 max-w-[70%] bg-white dark:bg-gray-900 shadow-2xl border-l border-slate-200 dark:border-white/10 z-40 flex flex-col rounded-bl-lg overflow-hidden"
     x-data="{
-        scriptState: @entangle('scriptExecution').live,
+        scriptState: $wire.entangle('scriptExecution').live,
         panelTop: 0,
         panelBottom: 0,
         get isRunning() {

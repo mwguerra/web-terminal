@@ -11,6 +11,9 @@ Thumbs.db
 .taskmanager/
 coverage.txt
 
+# E2E test app
+/tests/e2e-app/
+
 # Playwright test artifacts
 /screenshots/
 /test-results/

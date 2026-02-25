@@ -14,8 +14,8 @@
         @if(!empty($this->scripts))
         <div class="relative" x-data="{
             showScriptsDropdown: false,
-            isScriptActive: @entangle('scriptExecution').live,
-            connectedState: @entangle('isConnected').live,
+            isScriptActive: $wire.entangle('scriptExecution').live,
+            connectedState: $wire.entangle('isConnected').live,
             dropdownMaxWidth: 320,
             dropdownMaxHeight: 320,
             updateDropdownSize() {

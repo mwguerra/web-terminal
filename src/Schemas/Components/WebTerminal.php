@@ -76,7 +76,7 @@ class WebTerminal extends Livewire
     /** @var array<int, Script|array<string, mixed>>|Closure */
     protected array|Closure $scripts = [];
 
-    public static function make(Closure|string $component = null, Closure|array $data = []): static
+    public static function make(Closure|string|null $component = null, Closure|array $data = []): static
     {
         $static = app(static::class, [
             'component' => $component ?? WebTerminalComponent::class,

@@ -36,6 +36,8 @@ readonly class ValidCommand
     public function __construct(
         public bool $allowPipes = false,
         public bool $allowRedirection = false,
+        public bool $allowChaining = false,
+        public bool $allowExpansion = false,
         public int $maxLength = 1000,
         public string $message = 'The command contains unsafe characters',
     ) {}
@@ -91,8 +93,55 @@ readonly class ValidCommand
             );
         }
 
+        // Remove chaining chars if allowed
+        if ($this->allowChaining) {
+            $charsToCheck = array_filter(
+                $charsToCheck,
+                fn ($char) => ! in_array($char, [';', '&', '||', '&&'], true)
+            );
+        }
+
+        // Remove expansion chars if allowed
+        if ($this->allowExpansion) {
+            $charsToCheck = array_filter(
+                $charsToCheck,
+                fn ($char) => ! in_array($char, ['`', '$(', '${'], true)
+            );
+        }
+
+        // Check multi-character patterns first to avoid false positives
+        // with single-character substrings
+        $multiChar = [];
+        $singleChar = [];
+
         foreach ($charsToCheck as $char) {
+            if (strlen($char) > 1) {
+                $multiChar[] = $char;
+            } else {
+                $singleChar[] = $char;
+            }
+        }
+
+        foreach ($multiChar as $char) {
             if (str_contains($command, $char)) {
+                return true;
+            }
+        }
+
+        // For single-char checks, remove occurrences that are part of
+        // allowed multi-char operators to avoid false positives
+        $cleanedCommand = $command;
+
+        if ($this->allowChaining) {
+            $cleanedCommand = str_replace(['||', '&&'], '', $cleanedCommand);
+        }
+
+        if ($this->allowRedirection) {
+            $cleanedCommand = str_replace(['>>', '<<'], '', $cleanedCommand);
+        }
+
+        foreach ($singleChar as $char) {
+            if (str_contains($cleanedCommand, $char)) {
                 return true;
             }
         }

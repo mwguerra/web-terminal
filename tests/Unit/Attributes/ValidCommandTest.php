@@ -50,7 +50,33 @@ describe('ValidCommand', function () {
         expect($validator->validate('cat < input.txt'))->toBeTrue();
     });
 
-    it('blocks command substitution', function () {
+    it('blocks chaining by default', function () {
+        $validator = new ValidCommand();
+
+        expect($validator->validate('ls; rm -rf /'))->toBeFalse();
+        expect($validator->validate('sleep 100 &'))->toBeFalse();
+        expect($validator->validate('ls || echo fail'))->toBeFalse();
+        expect($validator->validate('ls && echo ok'))->toBeFalse();
+    });
+
+    it('can allow chaining', function () {
+        $validator = new ValidCommand(allowChaining: true);
+
+        expect($validator->validate('ls; echo done'))->toBeTrue();
+        expect($validator->validate('sleep 1 &'))->toBeTrue();
+        expect($validator->validate('ls || echo fail'))->toBeTrue();
+        expect($validator->validate('ls && echo ok'))->toBeTrue();
+    });
+
+    it('allowing chaining does not allow expansion', function () {
+        $validator = new ValidCommand(allowChaining: true);
+
+        expect($validator->validate('echo $(whoami)'))->toBeFalse();
+        expect($validator->validate('echo `whoami`'))->toBeFalse();
+        expect($validator->validate('echo ${PATH}'))->toBeFalse();
+    });
+
+    it('blocks expansion by default', function () {
         $validator = new ValidCommand();
 
         expect($validator->validate('echo $(whoami)'))->toBeFalse();
@@ -58,9 +84,18 @@ describe('ValidCommand', function () {
         expect($validator->validate('echo ${PATH}'))->toBeFalse();
     });
 
-    it('blocks background operators', function () {
-        $validator = new ValidCommand();
+    it('can allow expansion', function () {
+        $validator = new ValidCommand(allowExpansion: true);
 
+        expect($validator->validate('echo $(whoami)'))->toBeTrue();
+        expect($validator->validate('echo `whoami`'))->toBeTrue();
+        expect($validator->validate('echo ${HOME}'))->toBeTrue();
+    });
+
+    it('allowing expansion does not allow chaining', function () {
+        $validator = new ValidCommand(allowExpansion: true);
+
+        expect($validator->validate('ls; rm -rf /'))->toBeFalse();
         expect($validator->validate('sleep 100 &'))->toBeFalse();
     });
 

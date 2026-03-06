@@ -263,6 +263,21 @@ class WebTerminal extends Component
     #[Locked]
     public bool $allowAllCommands = false;
 
+    #[Locked]
+    public bool $allowPipes = false;
+
+    #[Locked]
+    public bool $allowRedirection = false;
+
+    #[Locked]
+    public bool $allowChaining = false;
+
+    #[Locked]
+    public bool $allowExpansion = false;
+
+    #[Locked]
+    public bool $allowAllShellOperators = false;
+
     /**
      * Environment variables for command execution.
      *
@@ -419,6 +434,11 @@ class WebTerminal extends Component
         ?int $maxOutputLines = null,
         ?string $height = null,
         bool $allowAllCommands = false,
+        bool $allowPipes = false,
+        bool $allowRedirection = false,
+        bool $allowChaining = false,
+        bool $allowExpansion = false,
+        bool $allowAllShellOperators = false,
         array $environment = [],
         bool $useLoginShell = false,
         string $shell = '/bin/bash',
@@ -472,6 +492,13 @@ class WebTerminal extends Component
 
         // Set allow all commands flag
         $this->allowAllCommands = $allowAllCommands;
+
+        // Set shell operator flags
+        $this->allowPipes = $allowPipes || $allowAllShellOperators;
+        $this->allowRedirection = $allowRedirection || $allowAllShellOperators;
+        $this->allowChaining = $allowChaining || $allowAllShellOperators;
+        $this->allowExpansion = $allowExpansion || $allowAllShellOperators;
+        $this->allowAllShellOperators = $allowAllShellOperators;
 
         // Set environment variables
         $this->environment = $environment;
@@ -1311,7 +1338,13 @@ class WebTerminal extends Component
     {
         $blockedChars = config('web-terminal.security.blocked_characters', []);
 
-        return new CommandSanitizer($blockedChars);
+        return new CommandSanitizer(
+            blockedCharacters: $blockedChars,
+            allowPipes: $this->allowPipes,
+            allowRedirection: $this->allowRedirection,
+            allowChaining: $this->allowChaining,
+            allowExpansion: $this->allowExpansion,
+        );
     }
 
     /**

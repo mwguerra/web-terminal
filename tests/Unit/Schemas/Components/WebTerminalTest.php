@@ -442,6 +442,118 @@ describe('windowControls', function () {
     });
 });
 
+describe('allowPipes', function () {
+    it('does not allow pipes by default', function () {
+        $component = WebTerminal::make();
+
+        expect($component->getAllowPipes())->toBeFalse();
+    });
+
+    it('enables pipes', function () {
+        $component = WebTerminal::make()->allowPipes();
+
+        expect($component->getAllowPipes())->toBeTrue();
+    });
+
+    it('returns self for method chaining', function () {
+        $component = WebTerminal::make();
+
+        expect($component->allowPipes())->toBe($component);
+    });
+});
+
+describe('allowRedirection', function () {
+    it('does not allow redirection by default', function () {
+        $component = WebTerminal::make();
+
+        expect($component->getAllowRedirection())->toBeFalse();
+    });
+
+    it('enables redirection', function () {
+        $component = WebTerminal::make()->allowRedirection();
+
+        expect($component->getAllowRedirection())->toBeTrue();
+    });
+
+    it('returns self for method chaining', function () {
+        $component = WebTerminal::make();
+
+        expect($component->allowRedirection())->toBe($component);
+    });
+});
+
+describe('allowChaining', function () {
+    it('does not allow chaining by default', function () {
+        $component = WebTerminal::make();
+
+        expect($component->getAllowChaining())->toBeFalse();
+    });
+
+    it('enables chaining', function () {
+        $component = WebTerminal::make()->allowChaining();
+
+        expect($component->getAllowChaining())->toBeTrue();
+    });
+
+    it('returns self for method chaining', function () {
+        $component = WebTerminal::make();
+
+        expect($component->allowChaining())->toBe($component);
+    });
+});
+
+describe('allowExpansion', function () {
+    it('does not allow expansion by default', function () {
+        $component = WebTerminal::make();
+
+        expect($component->getAllowExpansion())->toBeFalse();
+    });
+
+    it('enables expansion', function () {
+        $component = WebTerminal::make()->allowExpansion();
+
+        expect($component->getAllowExpansion())->toBeTrue();
+    });
+
+    it('returns self for method chaining', function () {
+        $component = WebTerminal::make();
+
+        expect($component->allowExpansion())->toBe($component);
+    });
+});
+
+describe('allowAllShellOperators', function () {
+    it('does not allow all shell operators by default', function () {
+        $component = WebTerminal::make();
+
+        expect($component->getAllowAllShellOperators())->toBeFalse();
+    });
+
+    it('enables all shell operators', function () {
+        $component = WebTerminal::make()->allowAllShellOperators();
+
+        expect($component->getAllowAllShellOperators())->toBeTrue();
+        expect($component->getAllowPipes())->toBeTrue();
+        expect($component->getAllowRedirection())->toBeTrue();
+        expect($component->getAllowChaining())->toBeTrue();
+        expect($component->getAllowExpansion())->toBeTrue();
+    });
+
+    it('can disable all shell operators', function () {
+        $component = WebTerminal::make()
+            ->allowAllShellOperators()
+            ->allowAllShellOperators(false);
+
+        expect($component->getAllowAllShellOperators())->toBeFalse();
+    });
+
+    it('returns self for method chaining', function () {
+        $component = WebTerminal::make();
+
+        expect($component->allowAllShellOperators())->toBe($component);
+    });
+});
+
 describe('backward compatibility', function () {
     it('WebTerminalEmbed alias exists', function () {
         expect(class_exists(\MWGuerra\WebTerminal\Schemas\Components\WebTerminalEmbed::class))->toBeTrue();

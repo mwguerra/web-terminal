@@ -42,6 +42,16 @@ class WebTerminal extends Livewire
 
     protected bool|Closure $allowAll = false;
 
+    protected bool|Closure $allowPipes = false;
+
+    protected bool|Closure $allowRedirection = false;
+
+    protected bool|Closure $allowChaining = false;
+
+    protected bool|Closure $allowExpansion = false;
+
+    protected bool|Closure $allowAllShellOperators = false;
+
     protected array|Closure $environment = [];
 
     protected bool|Closure $useLoginShell = false;
@@ -108,6 +118,11 @@ class WebTerminal extends Livewire
             'connection' => $config,
             'allowedCommands' => $this->getAllowedCommands(),
             'allowAllCommands' => $this->getAllowAll(),
+            'allowPipes' => $this->getAllowPipes(),
+            'allowRedirection' => $this->getAllowRedirection(),
+            'allowChaining' => $this->getAllowChaining(),
+            'allowExpansion' => $this->getAllowExpansion(),
+            'allowAllShellOperators' => $this->getAllowAllShellOperators(),
             'environment' => $this->getEnvironment(),
             'useLoginShell' => $this->getUseLoginShell(),
             'shell' => $this->getShell(),
@@ -301,6 +316,104 @@ class WebTerminal extends Livewire
     public function getAllowAll(): bool
     {
         return $this->evaluate($this->allowAll);
+    }
+
+    // ========================================
+    // Shell Operator Controls
+    // ========================================
+
+    /**
+     * Allow pipe operators (|) in commands.
+     *
+     * Enables piping output between commands (e.g., `ls | grep foo`).
+     * Risk: Low - pipes pass data between processes.
+     */
+    public function allowPipes(bool|Closure $allow = true): static
+    {
+        $this->allowPipes = $allow;
+
+        return $this;
+    }
+
+    public function getAllowPipes(): bool
+    {
+        return $this->evaluate($this->allowPipes);
+    }
+
+    /**
+     * Allow redirection operators (>, <, >>, <<) in commands.
+     *
+     * Enables file redirection (e.g., `echo test > file.txt`).
+     * Risk: Medium - can overwrite or read files.
+     */
+    public function allowRedirection(bool|Closure $allow = true): static
+    {
+        $this->allowRedirection = $allow;
+
+        return $this;
+    }
+
+    public function getAllowRedirection(): bool
+    {
+        return $this->evaluate($this->allowRedirection);
+    }
+
+    /**
+     * Allow chaining operators (;, &&, ||, &) in commands.
+     *
+     * Enables running multiple commands (e.g., `ls && pwd`).
+     * Risk: Medium - allows executing multiple commands sequentially.
+     */
+    public function allowChaining(bool|Closure $allow = true): static
+    {
+        $this->allowChaining = $allow;
+
+        return $this;
+    }
+
+    public function getAllowChaining(): bool
+    {
+        return $this->evaluate($this->allowChaining);
+    }
+
+    /**
+     * Allow expansion operators ($, `, $(), ${}) in commands.
+     *
+     * Enables variable and command substitution (e.g., `echo $HOME`).
+     * Risk: High - allows arbitrary command execution via substitution.
+     */
+    public function allowExpansion(bool|Closure $allow = true): static
+    {
+        $this->allowExpansion = $allow;
+
+        return $this;
+    }
+
+    public function getAllowExpansion(): bool
+    {
+        return $this->evaluate($this->allowExpansion);
+    }
+
+    /**
+     * Allow all shell operators (pipes, redirection, chaining, expansion).
+     *
+     * WARNING: This disables all operator filtering. Use with caution.
+     * Only use in trusted environments where users need full shell access.
+     */
+    public function allowAllShellOperators(bool|Closure $allow = true): static
+    {
+        $this->allowAllShellOperators = $allow;
+        $this->allowPipes = $allow;
+        $this->allowRedirection = $allow;
+        $this->allowChaining = $allow;
+        $this->allowExpansion = $allow;
+
+        return $this;
+    }
+
+    public function getAllowAllShellOperators(): bool
+    {
+        return $this->evaluate($this->allowAllShellOperators);
     }
 
     // ========================================

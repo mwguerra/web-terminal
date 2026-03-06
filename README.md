@@ -1435,6 +1435,52 @@ Only whitelisted commands can be executed (unless `allowAllCommands()` is explic
 
 ![Blocked Command](https://raw.githubusercontent.com/mwguerra/web-terminal/main/docs/images/ssh-terminal-not-allowed.jpg)
 
+### Shell Operator Controls
+
+By default, the terminal blocks shell operators (pipes, redirections, chaining, and variable expansion) to prevent command injection. You can selectively enable operator groups based on your security requirements.
+
+#### Operator Groups
+
+| Method | Operators | Risk Level | Description |
+|--------|-----------|------------|-------------|
+| `allowPipes()` | `\|` | Low | Enables piping output between commands. Pipes pass stdout of one command to stdin of another. Example: `ls \| grep foo` |
+| `allowRedirection()` | `>` `<` `>>` `<<` | Medium | Enables file I/O redirection. Output redirection (`>`) can overwrite files. Input redirection (`<`) reads from files. Append (`>>`) adds to files. Here-documents (`<<`) allow multi-line input. |
+| `allowChaining()` | `;` `&&` `\|\|` `&` | Medium | Enables running multiple commands. Semicolon (`;`) runs sequentially. AND (`&&`) runs next only on success. OR (`\|\|`) runs next only on failure. Background (`&`) runs asynchronously. |
+| `allowExpansion()` | `$` `` ` `` `$()` `${}` | High | Enables variable and command substitution. Dollar sign (`$VAR`) expands variables. Backticks and `$()` execute commands and substitute output. `${}` enables parameter expansion. **Most dangerous group.** |
+| `allowAllShellOperators()` | All above | High | Enables all operator groups at once. Only use in trusted environments. |
+
+#### Usage Examples
+
+```php
+// Allow only piping (low risk)
+WebTerminal::make()
+    ->allowedCommands(['ls', 'grep', 'sort', 'wc'])
+    ->allowPipes()
+
+// Allow piping and redirection
+WebTerminal::make()
+    ->allowedCommands(['ls', 'grep', 'cat', 'echo'])
+    ->allowPipes()
+    ->allowRedirection()
+
+// Full shell access (high risk - trusted environments only)
+WebTerminal::make()
+    ->allowAllCommands()
+    ->allowAllShellOperators()
+```
+
+#### Security Invariants
+
+Regardless of which operator groups you enable, the following characters are **always blocked** to prevent fundamental injection attacks:
+
+- **Null bytes** (`\x00`) - Can truncate strings and bypass security checks
+- **Newlines** (`\n`) - Can inject additional commands on new lines
+- **Carriage returns** (`\r`) - Can be used for command injection via line manipulation
+
+#### Why Operators Are Blocked by Default
+
+Shell operators are a common vector for command injection attacks. Even when commands are whitelisted, operators can be used to chain arbitrary commands, redirect sensitive data to files, or substitute variables to bypass restrictions. By blocking operators by default and requiring explicit opt-in, the terminal follows the principle of least privilege and reduces the attack surface for untrusted input.
+
 ### Input Sanitization
 
 All user input is properly escaped and sanitized:

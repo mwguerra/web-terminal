@@ -56,16 +56,33 @@ class CommandSanitizer
      */
     protected bool $autoEscape = true;
 
+    protected bool $allowPipes = false;
+
+    protected bool $allowRedirection = false;
+
+    protected bool $allowChaining = false;
+
+    protected bool $allowExpansion = false;
+
     /**
      * Create a new CommandSanitizer instance.
      *
      * @param  array<int, string>  $blockedCharacters  Characters to block
      */
-    public function __construct(array $blockedCharacters = [])
-    {
+    public function __construct(
+        array $blockedCharacters = [],
+        bool $allowPipes = false,
+        bool $allowRedirection = false,
+        bool $allowChaining = false,
+        bool $allowExpansion = false,
+    ) {
         if (! empty($blockedCharacters)) {
             $this->blockedCharacters = $blockedCharacters;
         }
+        $this->allowPipes = $allowPipes;
+        $this->allowRedirection = $allowRedirection;
+        $this->allowChaining = $allowChaining;
+        $this->allowExpansion = $allowExpansion;
     }
 
     /**
@@ -134,7 +151,7 @@ class CommandSanitizer
      */
     protected function checkBlockedCharacters(string $command): void
     {
-        foreach ($this->blockedCharacters as $char) {
+        foreach ($this->getEffectiveBlockedCharacters() as $char) {
             if (str_contains($command, $char)) {
                 throw ValidationException::blockedCharacters($command, $char);
             }
@@ -148,7 +165,7 @@ class CommandSanitizer
      */
     protected function checkInjectionPatterns(string $command): void
     {
-        foreach ($this->injectionPatterns as $pattern) {
+        foreach ($this->getEffectiveInjectionPatterns() as $pattern) {
             if (preg_match($pattern, $command)) {
                 throw ValidationException::injectionAttempt($command);
             }
@@ -317,11 +334,9 @@ class CommandSanitizer
      */
     public function stripDangerous(string $input): string
     {
-        // Remove blocked characters
-        $result = str_replace($this->blockedCharacters, '', $input);
+        $result = str_replace($this->getEffectiveBlockedCharacters(), '', $input);
 
-        // Remove patterns that could be dangerous
-        foreach ($this->injectionPatterns as $pattern) {
+        foreach ($this->getEffectiveInjectionPatterns() as $pattern) {
             $result = preg_replace($pattern, '', $result) ?? $result;
         }
 
@@ -410,5 +425,104 @@ class CommandSanitizer
     public function isAutoEscapeEnabled(): bool
     {
         return $this->autoEscape;
+    }
+
+    public function allowPipes(bool $allow = true): static
+    {
+        $this->allowPipes = $allow;
+
+        return $this;
+    }
+
+    public function allowRedirection(bool $allow = true): static
+    {
+        $this->allowRedirection = $allow;
+
+        return $this;
+    }
+
+    public function allowChaining(bool $allow = true): static
+    {
+        $this->allowChaining = $allow;
+
+        return $this;
+    }
+
+    public function allowExpansion(bool $allow = true): static
+    {
+        $this->allowExpansion = $allow;
+
+        return $this;
+    }
+
+    public function allowAllShellOperators(bool $allow = true): static
+    {
+        $this->allowPipes = $allow;
+        $this->allowRedirection = $allow;
+        $this->allowChaining = $allow;
+        $this->allowExpansion = $allow;
+
+        return $this;
+    }
+
+    /**
+     * Get the effective blocked characters, filtering out allowed operator groups.
+     *
+     * @return array<int, string>
+     */
+    protected function getEffectiveBlockedCharacters(): array
+    {
+        $chars = $this->blockedCharacters;
+
+        if ($this->allowPipes) {
+            $chars = array_filter($chars, fn ($c) => $c !== '|');
+        }
+
+        if ($this->allowChaining) {
+            $chars = array_filter($chars, fn ($c) => ! in_array($c, [';', '&'], true));
+        }
+
+        if ($this->allowExpansion) {
+            $chars = array_filter($chars, fn ($c) => ! in_array($c, ['$', '`'], true));
+        }
+
+        return array_values($chars);
+    }
+
+    /**
+     * Get the effective injection patterns, filtering out allowed operator groups.
+     *
+     * @return array<int, string>
+     */
+    protected function getEffectiveInjectionPatterns(): array
+    {
+        $patterns = $this->injectionPatterns;
+
+        if ($this->allowRedirection) {
+            $patterns = array_filter($patterns, fn ($p) => ! in_array($p, [
+                '/\>\s*\>/',
+                '/\<\s*\</',
+                '/\>\s*\//',
+                '/\<\s*\//',
+            ], true));
+        }
+
+        if ($this->allowChaining) {
+            $patterns = array_filter($patterns, fn ($p) => ! in_array($p, [
+                '/\|\s*\|/',
+                '/\&\s*\&/',
+            ], true));
+        }
+
+        if ($this->allowExpansion) {
+            $patterns = array_filter($patterns, fn ($p) => ! in_array($p, [
+                '/\$\(/',
+                '/\$\{/',
+                '/\\\\x[0-9a-fA-F]{2}/',
+                '/\\\\[0-7]{1,3}/',
+            ], true));
+        }
+
+        return array_values($patterns);
     }
 }

@@ -363,6 +363,182 @@ describe('CommandSanitizer', function () {
         });
     });
 
+    describe('shell operator controls', function () {
+        describe('allowPipes', function () {
+            it('blocks pipes by default', function () {
+                $sanitizer = new CommandSanitizer();
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeFalse();
+            });
+
+            it('allows pipes when enabled', function () {
+                $sanitizer = (new CommandSanitizer())->allowPipes();
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeTrue();
+            });
+
+            it('still blocks other operators when pipes allowed', function () {
+                $sanitizer = (new CommandSanitizer())->allowPipes();
+
+                expect($sanitizer->isSafe('ls; rm -rf /'))->toBeFalse();
+                expect($sanitizer->isSafe('echo $HOME'))->toBeFalse();
+                expect($sanitizer->isSafe('echo `id`'))->toBeFalse();
+            });
+        });
+
+        describe('allowRedirection', function () {
+            it('blocks redirection by default', function () {
+                $sanitizer = new CommandSanitizer();
+
+                expect($sanitizer->isSafe('echo test >> /tmp/file'))->toBeFalse();
+                expect($sanitizer->isSafe('cat << EOF'))->toBeFalse();
+            });
+
+            it('allows redirection operators when enabled', function () {
+                $sanitizer = (new CommandSanitizer())->allowRedirection();
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('echo test >> /tmp/file'))->toBeTrue();
+                expect($sanitizer->isSafe('cat << EOF'))->toBeTrue();
+                expect($sanitizer->isSafe('echo test > /tmp/file'))->toBeTrue();
+                expect($sanitizer->isSafe('cat < /tmp/file'))->toBeTrue();
+            });
+
+            it('still blocks other operators when redirection allowed', function () {
+                $sanitizer = (new CommandSanitizer())->allowRedirection();
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeFalse();
+                expect($sanitizer->isSafe('echo $HOME'))->toBeFalse();
+            });
+        });
+
+        describe('allowChaining', function () {
+            it('blocks chaining by default', function () {
+                $sanitizer = new CommandSanitizer();
+
+                expect($sanitizer->isSafe('ls; pwd'))->toBeFalse();
+                expect($sanitizer->isSafe('sleep 10 &'))->toBeFalse();
+            });
+
+            it('allows chaining operators when enabled', function () {
+                $sanitizer = (new CommandSanitizer())->allowChaining();
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('ls; pwd'))->toBeTrue();
+                expect($sanitizer->isSafe('true && echo yes'))->toBeTrue();
+                expect($sanitizer->isSafe('sleep 1 &'))->toBeTrue();
+            });
+
+            it('allows || when both chaining and pipes are enabled', function () {
+                $sanitizer = (new CommandSanitizer())->allowChaining()->allowPipes();
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('false || echo no'))->toBeTrue();
+            });
+
+            it('still blocks other operators when chaining allowed', function () {
+                $sanitizer = (new CommandSanitizer())->allowChaining();
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeFalse();
+                expect($sanitizer->isSafe('echo $HOME'))->toBeFalse();
+            });
+        });
+
+        describe('allowExpansion', function () {
+            it('blocks expansion by default', function () {
+                $sanitizer = new CommandSanitizer();
+
+                expect($sanitizer->isSafe('echo $HOME'))->toBeFalse();
+                expect($sanitizer->isSafe('echo `whoami`'))->toBeFalse();
+            });
+
+            it('allows expansion operators when enabled', function () {
+                $sanitizer = (new CommandSanitizer())->allowExpansion();
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('echo $HOME'))->toBeTrue();
+                expect($sanitizer->isSafe('echo `whoami`'))->toBeTrue();
+                expect($sanitizer->isSafe('echo $(whoami)'))->toBeTrue();
+                expect($sanitizer->isSafe('echo ${HOME}'))->toBeTrue();
+            });
+
+            it('still blocks other operators when expansion allowed', function () {
+                $sanitizer = (new CommandSanitizer())->allowExpansion();
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeFalse();
+                expect($sanitizer->isSafe('ls; pwd'))->toBeFalse();
+            });
+        });
+
+        describe('allowAllShellOperators', function () {
+            it('allows all operator groups', function () {
+                $sanitizer = (new CommandSanitizer())->allowAllShellOperators();
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeTrue();
+                expect($sanitizer->isSafe('echo test >> /tmp/file'))->toBeTrue();
+                expect($sanitizer->isSafe('ls; pwd'))->toBeTrue();
+                expect($sanitizer->isSafe('true && echo yes'))->toBeTrue();
+                expect($sanitizer->isSafe('echo $HOME'))->toBeTrue();
+                expect($sanitizer->isSafe('echo `whoami`'))->toBeTrue();
+            });
+
+            it('still blocks null bytes even when all operators allowed', function () {
+                $sanitizer = (new CommandSanitizer())->allowAllShellOperators();
+
+                expect($sanitizer->isSafe("echo hello\x00malicious"))->toBeFalse();
+            });
+
+            it('still blocks newlines even when all operators allowed', function () {
+                $sanitizer = (new CommandSanitizer())->allowAllShellOperators();
+
+                expect($sanitizer->isSafe("echo hello\nrm -rf /"))->toBeFalse();
+            });
+
+            it('still blocks carriage returns even when all operators allowed', function () {
+                $sanitizer = (new CommandSanitizer())->allowAllShellOperators();
+
+                expect($sanitizer->isSafe("echo hello\rrm -rf /"))->toBeFalse();
+            });
+        });
+
+        describe('combining groups', function () {
+            it('allows pipes and redirection together', function () {
+                $sanitizer = (new CommandSanitizer())->allowPipes()->allowRedirection();
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeTrue();
+                expect($sanitizer->isSafe('echo test >> /tmp/file'))->toBeTrue();
+                expect($sanitizer->isSafe('ls; pwd'))->toBeFalse();
+                expect($sanitizer->isSafe('echo $HOME'))->toBeFalse();
+            });
+
+            it('allows pipes and chaining together', function () {
+                $sanitizer = (new CommandSanitizer())->allowPipes()->allowChaining();
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeTrue();
+                expect($sanitizer->isSafe('ls; pwd'))->toBeTrue();
+                expect($sanitizer->isSafe('true && echo yes'))->toBeTrue();
+                expect($sanitizer->isSafe('echo $HOME'))->toBeFalse();
+            });
+        });
+
+        describe('constructor flags', function () {
+            it('accepts flags via constructor', function () {
+                $sanitizer = new CommandSanitizer(
+                    allowPipes: true,
+                    allowChaining: true,
+                );
+                $sanitizer->setAutoEscape(false);
+
+                expect($sanitizer->isSafe('ls | grep foo'))->toBeTrue();
+                expect($sanitizer->isSafe('ls; pwd'))->toBeTrue();
+                expect($sanitizer->isSafe('echo $HOME'))->toBeFalse();
+            });
+        });
+    });
+
     describe('edge cases', function () {
         it('handles unicode characters', function () {
             $sanitizer = new CommandSanitizer();

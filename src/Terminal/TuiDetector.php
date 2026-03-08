@@ -8,13 +8,23 @@ namespace MWGuerra\WebTerminal\Terminal;
  * Detects full-screen TUI (Text User Interface) applications in command output.
  *
  * TUI apps like vim, htop, less, and nano use alternate screen buffer escape
- * sequences to take over the terminal. These sequences cannot be rendered in
- * a web terminal's line-based display. This class detects those sequences and
- * provides suggestions for non-interactive alternatives.
+ * sequences and device status reports to take over the terminal. These sequences
+ * cannot be rendered in a web terminal's line-based display. This class detects
+ * those sequences and provides suggestions for non-interactive alternatives.
  */
 class TuiDetector
 {
-    private const ALTERNATE_SCREEN_PATTERN = '/\x1b\[\?(1049|47|1047)[hl]/';
+    /**
+     * Patterns that reliably indicate a TUI application.
+     *
+     * - Alternate screen buffer: the definitive signal for full-screen takeover
+     * - Device Status Report (\x1b[6n): cursor position query used by TUI apps
+     *   to probe terminal dimensions — regular CLI tools never use this
+     */
+    private const TUI_PATTERNS = [
+        '/(?:\x1b|\033)\[\?(1049|47|1047)[hl]/',  // Alternate screen buffer
+        '/(?:\x1b|\033)\[6n/',                      // Device Status Report (cursor position query)
+    ];
 
     private const EDITOR_COMMANDS = ['vim', 'vi', 'nvim', 'nano', 'less', 'more'];
 
@@ -26,7 +36,13 @@ class TuiDetector
             return false;
         }
 
-        return (bool) preg_match(self::ALTERNATE_SCREEN_PATTERN, $output);
+        foreach (self::TUI_PATTERNS as $pattern) {
+            if (preg_match($pattern, $output)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function getSuggestion(string $command): ?string

@@ -59,6 +59,24 @@ describe('TuiDetector', function () {
             $output = "\x1b[31mred\x1b[0m some text \x1b[?1049h more stuff";
             expect(TuiDetector::containsTuiSequences($output))->toBeTrue();
         });
+
+        it('detects Device Status Report (cursor position query)', function () {
+            expect(TuiDetector::containsTuiSequences("\x1b[6n"))->toBeTrue();
+        });
+
+        it('detects Device Status Report with octal escape', function () {
+            expect(TuiDetector::containsTuiSequences("\033[6n"))->toBeTrue();
+        });
+
+        it('detects Device Status Report mixed with other output', function () {
+            $output = "some text \x1b[6n more output";
+            expect(TuiDetector::containsTuiSequences($output))->toBeTrue();
+        });
+
+        it('does not false-positive on other CSI n sequences', function () {
+            expect(TuiDetector::containsTuiSequences("\x1b[5n"))->toBeFalse();
+            expect(TuiDetector::containsTuiSequences("\x1b[0n"))->toBeFalse();
+        });
     });
 
     describe('getSuggestion', function () {

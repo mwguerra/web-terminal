@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Livewire\Livewire;
+use MWGuerra\WebTerminal\Data\CommandResult;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Livewire\WebTerminal;
 
@@ -797,6 +798,62 @@ describe('TerminalBuilder', function () {
         expect($params['timeout'])->toBe(20);
         expect($params['prompt'])->toBe('$ ');
         expect($params['historyLimit'])->toBe(5);
+    });
+
+    describe('TUI detection in synchronous output', function () {
+        it('shows error when command output contains TUI sequences', function () {
+            $component = Livewire::test(WebTerminal::class);
+            $component->call('connect');
+
+            $instance = $component->instance();
+
+            $result = CommandResult::success(
+                stdout: "some output\x1b[?1049hmore output",
+                executionTime: 0.1,
+                command: 'vim file.txt',
+            );
+
+            $method = new ReflectionMethod($instance, 'addCommandResultOutput');
+            $method->invoke($instance, $result);
+
+            $output = $component->get('output');
+            $errorFound = false;
+            foreach ($output as $line) {
+                if ($line['type'] === 'error' && str_contains($line['content'], 'full-screen terminal')) {
+                    $errorFound = true;
+                    break;
+                }
+            }
+
+            expect($errorFound)->toBeTrue();
+        });
+
+        it('does not trigger TUI detection for normal command output', function () {
+            $component = Livewire::test(WebTerminal::class);
+            $component->call('connect');
+
+            $instance = $component->instance();
+
+            $result = CommandResult::success(
+                stdout: 'hello world',
+                executionTime: 0.1,
+                command: 'echo hello world',
+            );
+
+            $method = new ReflectionMethod($instance, 'addCommandResultOutput');
+            $method->invoke($instance, $result);
+
+            $output = $component->get('output');
+            $hasError = false;
+            foreach ($output as $line) {
+                if ($line['type'] === 'error' && str_contains($line['content'], 'full-screen terminal')) {
+                    $hasError = true;
+                    break;
+                }
+            }
+
+            expect($hasError)->toBeFalse();
+        });
     });
 
     it('generates HTML tag', function () {

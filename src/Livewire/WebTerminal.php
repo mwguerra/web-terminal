@@ -23,6 +23,7 @@ use MWGuerra\WebTerminal\Security\CommandValidator;
 use MWGuerra\WebTerminal\Security\RateLimiter;
 use MWGuerra\WebTerminal\Services\TerminalLogger;
 use MWGuerra\WebTerminal\Terminal\AnsiToHtml;
+use MWGuerra\WebTerminal\Terminal\TuiDetector;
 
 /**
  * Web Terminal Livewire Component.
@@ -1199,6 +1200,9 @@ class WebTerminal extends Component
         $this->addOutput(TerminalOutput::info('Clipboard:'));
         $this->addOutput(TerminalOutput::stdout('  Hover   - Copy button appears on command blocks'));
         $this->addOutput(TerminalOutput::stdout('  Paste   - Multi-line paste shows confirmation modal'));
+        $this->addOutput(TerminalOutput::info(''));
+        $this->addOutput(TerminalOutput::info('Notes:'));
+        $this->addOutput(TerminalOutput::stdout('  Full-screen apps (vim, htop, less) are detected and blocked with suggestions.'));
     }
 
     /**
@@ -1219,6 +1223,16 @@ class WebTerminal extends Component
      */
     protected function addCommandResultOutput(CommandResult $result): void
     {
+        // Check for TUI sequences in output before rendering
+        $combinedOutput = $result->stdout . $result->stderr;
+        if (TuiDetector::containsTuiSequences($combinedOutput)) {
+            $this->addOutput(TerminalOutput::error(
+                TuiDetector::getErrorMessage($result->command)
+            ));
+
+            return;
+        }
+
         // Process stdout - trim trailing whitespace and add non-empty lines
         if ($result->stdout !== '') {
             $lines = $this->cleanOutputLines($result->stdout);
@@ -1548,11 +1562,13 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($isFullScreen && $hasContent) {
-                    // Full screen mode: replace output from session start
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                    $this->handleTuiDetected($handler);
+
+                    return;
+                } elseif ($isFullScreen) {
                     $this->replaceInteractiveOutput($output);
                 } else {
-                    // Incremental mode: append output
                     $this->appendInteractiveOutput($output);
                 }
             }
@@ -1777,11 +1793,13 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($isFullScreen && $hasContent) {
-                    // Full screen mode: replace output from session start
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                    $this->handleTuiDetected($handler);
+
+                    return;
+                } elseif ($isFullScreen) {
                     $this->replaceInteractiveOutput($output);
                 } else {
-                    // Incremental mode: append output
                     $this->appendInteractiveOutput($output);
                 }
             }
@@ -1822,6 +1840,39 @@ class WebTerminal extends Component
         $this->resetInteractiveState();
 
         // Dispatch Livewire event to stop polling
+        $this->dispatch('terminal-interactive-finished');
+    }
+
+    /**
+     * Handle detection of a TUI application in interactive mode.
+     *
+     * Kills the process, shows an error message with suggestions, and resets state.
+     */
+    protected function handleTuiDetected(ConnectionHandlerInterface $handler): void
+    {
+        $command = $this->interactiveCommand;
+
+        // Kill the process
+        try {
+            $handler->terminateProcess($this->activeSessionId);
+        } catch (\Throwable) {
+            // Best-effort termination
+        }
+
+        // Clear any partial output from the TUI app
+        if ($this->interactiveOutputStart > 0) {
+            $this->output = array_slice($this->output, 0, $this->interactiveOutputStart);
+        }
+
+        // Show error message with suggestion
+        $this->addOutput(TerminalOutput::error(
+            TuiDetector::getErrorMessage($command)
+        ));
+
+        // Reset interactive state
+        $this->resetInteractiveState();
+
+        // Dispatch event to stop polling
         $this->dispatch('terminal-interactive-finished');
     }
 
@@ -2366,7 +2417,11 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($isFullScreen && $hasContent) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                    $this->handleTuiDetected($handler);
+
+                    return;
+                } elseif ($isFullScreen) {
                     $this->replaceInteractiveOutput($output);
                 } else {
                     $this->appendInteractiveOutput($output);

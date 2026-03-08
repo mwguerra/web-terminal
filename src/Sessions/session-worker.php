@@ -87,8 +87,12 @@ $descriptors = [
     2 => ['pty'],
 ];
 
-// Merge provided env with current environment so PATH etc. are preserved
-$envVars = $env !== null ? array_merge(getenv(), $env) : null;
+// Merge provided env with current environment so PATH etc. are preserved.
+// Disable Xdebug in child processes to avoid spurious warnings about
+// renamed settings and JIT incompatibility in REPL output.
+$baseEnv = getenv();
+$baseEnv['XDEBUG_MODE'] = 'off';
+$envVars = $env !== null ? array_merge($baseEnv, $env) : $baseEnv;
 $process = proc_open($command, $descriptors, $pipes, $cwd, $envVars);
 
 if (! is_resource($process)) {

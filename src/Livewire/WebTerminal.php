@@ -88,12 +88,24 @@ class WebTerminal extends Component
     protected string $interactiveCommand = '';
 
     /**
-     * Inputs sent to interactive session pending PTY echo removal.
+     * Inputs sent to the interactive session, used to identify PTY echo lines
+     * and render them as command type (green) instead of stdout.
      *
      * @var array<string>
      */
     #[Locked]
     public array $pendingInputEchoes = [];
+
+    /**
+     * Buffered partial line from previous interactive output chunk.
+     *
+     * When a PTY output chunk doesn't end with a newline, the last "line"
+     * is incomplete (e.g., a REPL prompt like "> "). This buffer holds it
+     * so it can be prepended to the next chunk's first line, producing
+     * correctly joined lines like "> 1 + 1".
+     */
+    #[Locked]
+    public string $interactiveLineBuffer = '';
 
     /**
      * Timestamp when interactive command started (for execution time logging).
@@ -1628,7 +1640,12 @@ class WebTerminal extends Component
         if (! empty($output['stdout'])) {
             $lines = $this->cleanInteractiveOutputLines($output['stdout']);
             foreach ($lines as $line) {
-                $this->addOutput(TerminalOutput::stdout($line));
+                // If this line contains a pending input echo, render as command (green)
+                if ($this->matchesPendingInputEcho($line)) {
+                    $this->addOutput(TerminalOutput::command($line));
+                } else {
+                    $this->addOutput(TerminalOutput::stdout($line));
+                }
             }
         }
 
@@ -1642,6 +1659,33 @@ class WebTerminal extends Component
     }
 
     /**
+     * Check if an output line contains a pending input echo and consume it.
+     *
+     * Matches lines where the user's input appears as a PTY echo, typically
+     * combined with a REPL prompt (e.g., "> 1 + 1" contains echo "1 + 1").
+     */
+    protected function matchesPendingInputEcho(string $line): bool
+    {
+        if (empty($this->pendingInputEchoes)) {
+            return false;
+        }
+
+        $trimmed = trim($line);
+
+        foreach ($this->pendingInputEchoes as $key => $echo) {
+            // Match exact echo or echo preceded by a prompt (e.g., "> 1 + 1")
+            if ($trimmed === $echo || str_ends_with($trimmed, $echo)) {
+                unset($this->pendingInputEchoes[$key]);
+                $this->pendingInputEchoes = array_values($this->pendingInputEchoes);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Clean interactive output: strip ANSI control sequences and PTY input echoes.
      *
      * @return array<string>
@@ -1651,30 +1695,47 @@ class WebTerminal extends Component
         // Strip all ANSI escape sequences (colors are re-applied by AnsiToHtml in the view)
         $output = AnsiToHtml::strip($output);
 
+        // Prepend any buffered partial line from the previous chunk.
+        // This joins split REPL prompts with their echoed input (e.g., "> " + "1 + 1" → "> 1 + 1").
+        if ($this->interactiveLineBuffer !== '') {
+            $output = $this->interactiveLineBuffer.$output;
+            $this->interactiveLineBuffer = '';
+        }
+
+        // If the chunk doesn't end with a newline, the last "line" is incomplete
+        // (typically a REPL prompt waiting for input). Buffer it for next time.
+        if ($output !== '' && ! str_ends_with($output, "\n")) {
+            $lastNewline = strrpos($output, "\n");
+            if ($lastNewline !== false) {
+                $this->interactiveLineBuffer = substr($output, $lastNewline + 1);
+                $output = substr($output, 0, $lastNewline + 1);
+            } else {
+                // Entire chunk is a partial line (e.g., just "> ")
+                $this->interactiveLineBuffer = $output;
+
+                return [];
+            }
+        }
+
         $lines = explode("\n", $output);
 
-        // Remove PTY input echoes — the PTY echoes back what was written to stdin,
-        // but we already display the input as a command line via TerminalOutput::command()
-        $lines = array_values(array_filter($lines, function (string $line): bool {
-            $stripped = trim($line);
-
-            if ($stripped === '' || empty($this->pendingInputEchoes)) {
-                return $stripped !== '';
+        // Remove empty lines and PHP startup noise (Xdebug warnings, JIT incompatibility)
+        return array_values(array_filter($lines, function (string $line): bool {
+            $trimmed = trim($line);
+            if ($trimmed === '') {
+                return false;
             }
 
-            foreach ($this->pendingInputEchoes as $key => $echo) {
-                if ($stripped === $echo) {
-                    unset($this->pendingInputEchoes[$key]);
-                    $this->pendingInputEchoes = array_values($this->pendingInputEchoes);
-
-                    return false;
-                }
+            // Filter PHP/Xdebug startup noise that isn't useful to terminal users
+            if (str_starts_with($trimmed, 'Xdebug: [Config]')) {
+                return false;
+            }
+            if (str_contains($trimmed, 'JIT is incompatible with third party extensions')) {
+                return false;
             }
 
             return true;
         }));
-
-        return $lines;
     }
 
     /**
@@ -1695,10 +1756,7 @@ class WebTerminal extends Component
         try {
             $handler = $this->getConnectionHandler();
 
-            // Echo the input to show what was sent
-            $this->addOutput(TerminalOutput::command($input));
-
-            // Track input for PTY echo removal
+            // Track input so we can render its PTY echo as command type (green)
             $this->pendingInputEchoes[] = $input;
 
             // Send input to the process
@@ -1878,6 +1936,15 @@ class WebTerminal extends Component
      */
     protected function finishInteractiveSession(?int $exitCode): void
     {
+        // Flush any buffered partial line before finishing
+        if ($this->interactiveLineBuffer !== '') {
+            $flushed = trim($this->interactiveLineBuffer);
+            if ($flushed !== '') {
+                $this->addOutput(TerminalOutput::stdout($flushed));
+            }
+            $this->interactiveLineBuffer = '';
+        }
+
         if ($exitCode !== null && $exitCode !== 0) {
             $this->addOutput(TerminalOutput::info("Process exited with code {$exitCode}"));
         }
@@ -2004,6 +2071,7 @@ class WebTerminal extends Component
         $this->interactiveOutputStart = 0;
         $this->interactiveCommand = '';
         $this->interactiveStartTime = 0;
+        $this->interactiveLineBuffer = '';
         $this->pendingInputEchoes = [];
     }
 

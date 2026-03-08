@@ -391,8 +391,8 @@ describe('LocalConnectionHandler', function () {
             expect($sessionId)->toBeString();
             expect($sessionId)->not->toBeEmpty();
 
-            // Login shell takes longer due to environment setup scripts (~600-800ms)
-            usleep(800000);
+            // Login shell takes longer due to environment setup scripts
+            usleep(1500000);
 
             // Process should complete successfully
             expect($this->handler->isProcessRunning($sessionId))->toBeFalse();

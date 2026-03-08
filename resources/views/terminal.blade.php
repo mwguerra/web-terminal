@@ -177,6 +177,40 @@
                 }
             });
         },
+        copyFeedback: false,
+        copyFeedbackTimeout: null,
+        async copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    return true;
+                } catch {
+                    return false;
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+        },
+        async copyAllOutput() {
+            const text = await $wire.getPlainTextOutput();
+            const success = await this.copyToClipboard(text);
+            if (success) {
+                this.copyFeedback = true;
+                clearTimeout(this.copyFeedbackTimeout);
+                this.copyFeedbackTimeout = setTimeout(() => {
+                    this.copyFeedback = false;
+                }, 1500);
+            }
+        },
         isScriptRunning() {
             return this.scriptExecution && this.scriptExecution.isRunning === true;
         },

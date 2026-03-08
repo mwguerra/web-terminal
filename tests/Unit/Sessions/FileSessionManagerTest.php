@@ -436,4 +436,47 @@ describe('FileSessionManager', function () {
             expect($this->manager->getSessionBaseDir())->toBe($dir);
         });
     });
+
+    describe('REPL interaction', function () {
+        it('supports multiple rounds of stdin/stdout interaction', function () {
+            // Use a while-read loop as a simple REPL simulator
+            // This reads lines from stdin and echoes them back prefixed with "GOT:"
+            $sessionId = startTracked(
+                $this->manager,
+                $this->startedSessions,
+                '/bin/bash -c \'while IFS= read -r line; do echo "GOT:$line"; done\''
+            );
+
+            usleep(300000); // Wait for process to start
+
+            // Round 1
+            $this->manager->sendInput($sessionId, 'round1');
+            usleep(300000);
+
+            $output = $this->manager->getOutput($sessionId);
+            expect($output['stdout'])->toContain('GOT:round1');
+
+            // Round 2
+            $this->manager->sendInput($sessionId, 'round2');
+            usleep(300000);
+
+            $output = $this->manager->getOutput($sessionId);
+            expect($output['stdout'])->toContain('GOT:round2');
+
+            // Round 3
+            $this->manager->sendInput($sessionId, 'round3');
+            usleep(300000);
+
+            $output = $this->manager->getOutput($sessionId);
+            expect($output['stdout'])->toContain('GOT:round3');
+
+            // Process should still be running (waiting for more input)
+            expect($this->manager->isRunning($sessionId))->toBeTrue();
+
+            // Terminate
+            $this->manager->terminate($sessionId);
+            usleep(300000);
+            expect($this->manager->isRunning($sessionId))->toBeFalse();
+        });
+    });
 });

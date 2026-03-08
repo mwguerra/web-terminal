@@ -128,5 +128,27 @@ describe('TuiDetector', function () {
         it('handles sudo prefix', function () {
             expect(TuiDetector::getSuggestion('sudo vim /etc/hosts'))->toBe('Try instead: cat /etc/hosts');
         });
+
+        it('suggests cat with placeholder for bare vim', function () {
+            expect(TuiDetector::getSuggestion('vim'))->toBe('Try instead: cat <file>');
+        });
+    });
+
+    describe('getErrorMessage', function () {
+        it('includes TUI not supported message', function () {
+            $message = TuiDetector::getErrorMessage('vim /etc/hosts');
+            expect($message)->toContain('full-screen terminal interface (TUI)');
+            expect($message)->toContain('not supported in the web terminal');
+        });
+
+        it('includes suggestion for known commands', function () {
+            $message = TuiDetector::getErrorMessage('less /var/log/syslog');
+            expect($message)->toContain('Try instead: cat /var/log/syslog');
+        });
+
+        it('has no suggestion for unknown commands', function () {
+            $message = TuiDetector::getErrorMessage('some-tui-app');
+            expect($message)->not->toContain('Try instead');
+        });
     });
 });

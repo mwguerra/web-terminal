@@ -1562,7 +1562,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences($output['stdout'] ?? '')) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;
@@ -1793,7 +1793,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences($output['stdout'] ?? '')) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;
@@ -2417,7 +2417,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences($output['stdout'] ?? '')) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;

@@ -23,6 +23,7 @@ use MWGuerra\WebTerminal\Security\CommandValidator;
 use MWGuerra\WebTerminal\Security\RateLimiter;
 use MWGuerra\WebTerminal\Services\TerminalLogger;
 use MWGuerra\WebTerminal\Terminal\AnsiToHtml;
+use MWGuerra\WebTerminal\Terminal\TuiDetector;
 
 /**
  * Web Terminal Livewire Component.
@@ -1219,6 +1220,16 @@ class WebTerminal extends Component
      */
     protected function addCommandResultOutput(CommandResult $result): void
     {
+        // Check for TUI sequences in output before rendering
+        $combinedOutput = $result->stdout . $result->stderr;
+        if (TuiDetector::containsTuiSequences($combinedOutput)) {
+            $this->addOutput(TerminalOutput::error(
+                TuiDetector::getErrorMessage($result->command)
+            ));
+
+            return;
+        }
+
         // Process stdout - trim trailing whitespace and add non-empty lines
         if ($result->stdout !== '') {
             $lines = $this->cleanOutputLines($result->stdout);

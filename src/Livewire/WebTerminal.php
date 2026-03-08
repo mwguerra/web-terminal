@@ -277,6 +277,13 @@ class WebTerminal extends Component
     public bool $allowAllShellOperators = false;
 
     /**
+     * Whether to use interactive execution (PTY/tmux) for whitelisted commands.
+     * Enables streaming output and stdin support without bypassing the whitelist.
+     */
+    #[Locked]
+    public bool $allowInteractiveMode = false;
+
+    /**
      * Environment variables for command execution.
      *
      * @var array<string, string>
@@ -437,6 +444,7 @@ class WebTerminal extends Component
         bool $allowChaining = false,
         bool $allowExpansion = false,
         bool $allowAllShellOperators = false,
+        bool $allowInteractiveMode = false,
         array $environment = [],
         bool $useLoginShell = false,
         string $shell = '/bin/bash',
@@ -497,6 +505,9 @@ class WebTerminal extends Component
         $this->allowChaining = $allowChaining || $allowAllShellOperators;
         $this->allowExpansion = $allowExpansion || $allowAllShellOperators;
         $this->allowAllShellOperators = $allowAllShellOperators;
+
+        // Set interactive mode flag
+        $this->allowInteractiveMode = $allowInteractiveMode;
 
         // Set environment variables
         $this->environment = $environment;
@@ -1224,7 +1235,7 @@ class WebTerminal extends Component
     protected function addCommandResultOutput(CommandResult $result): void
     {
         // Check for TUI sequences in output before rendering
-        $combinedOutput = $result->stdout . $result->stderr;
+        $combinedOutput = $result->stdout.$result->stderr;
         if (TuiDetector::containsTuiSequences($combinedOutput)) {
             $this->addOutput(TerminalOutput::error(
                 TuiDetector::getErrorMessage($result->command)
@@ -1562,7 +1573,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '').($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;
@@ -1793,7 +1804,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '').($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;
@@ -1956,7 +1967,7 @@ class WebTerminal extends Component
      */
     protected function shouldUseInteractiveMode(): bool
     {
-        if (! $this->allowAllCommands) {
+        if (! $this->allowAllCommands && ! $this->allowInteractiveMode) {
             return false;
         }
 
@@ -2417,7 +2428,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '').($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;

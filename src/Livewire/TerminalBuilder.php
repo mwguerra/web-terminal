@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\HtmlString;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Enums\ConnectionType;
+use MWGuerra\WebTerminal\Enums\TerminalPermission;
 
 /**
  * Fluent builder for WebTerminal component.
@@ -17,67 +18,83 @@ use MWGuerra\WebTerminal\Enums\ConnectionType;
  */
 class TerminalBuilder
 {
-    /**
-     * Connection configuration.
-     *
-     * @var array<string, mixed>|ConnectionConfig|null
-     */
+    /** @var array<string, mixed>|ConnectionConfig|null */
     protected array|ConnectionConfig|null $connection = null;
 
-    /**
-     * Allowed commands list.
-     *
-     * @var array<string>|null
-     */
+    /** @var array<string>|null */
     protected ?array $allowedCommands = null;
 
-    /**
-     * Command timeout in seconds.
-     */
     protected ?int $timeout = null;
 
-    /**
-     * Terminal prompt string.
-     */
     protected ?string $prompt = null;
 
-    /**
-     * History limit.
-     */
     protected ?int $historyLimit = null;
 
-    /**
-     * Maximum output lines.
-     */
     protected ?int $maxOutputLines = null;
 
-    /**
-     * Component key for Livewire.
-     */
+    protected ?string $height = null;
+
     protected ?string $key = null;
 
-    /**
-     * Custom metadata for logging.
-     *
-     * @var array<string, mixed>
-     */
+    // Permission flags
+    protected bool $allowAllCommands = false;
+
+    protected bool $allowPipes = false;
+
+    protected bool $allowRedirection = false;
+
+    protected bool $allowChaining = false;
+
+    protected bool $allowExpansion = false;
+
+    protected bool $allowAllShellOperators = false;
+
+    protected bool $allowInteractiveMode = false;
+
+    // Environment & shell
+    /** @var array<string, string> */
+    protected array $environment = [];
+
+    protected bool $useLoginShell = false;
+
+    protected string $shell = '/bin/bash';
+
+    // UI options
+    protected bool $startConnected = false;
+
+    protected ?string $title = null;
+
+    protected bool $showWindowControls = true;
+
+    // Logging
+    protected ?bool $loggingEnabled = null;
+
+    protected ?bool $logConnections = null;
+
+    protected ?bool $logCommands = null;
+
+    protected ?bool $logOutput = null;
+
+    protected ?string $logIdentifier = null;
+
+    /** @var array<string, mixed> */
     protected array $logMetadata = [];
 
-    /**
-     * Whether to disconnect on page navigation.
-     */
+    // Session management
     protected ?bool $disconnectOnNavigate = null;
 
-    /**
-     * Inactivity timeout in seconds.
-     */
     protected ?int $inactivityTimeout = null;
 
+    // Scripts
+    /** @var array<mixed> */
+    protected array $scripts = [];
+
+    // ========================================
+    // Connection Configuration
+    // ========================================
+
     /**
-     * Set the connection configuration.
-     *
      * @param  array<string, mixed>  $config
-     * @return $this
      */
     public function connection(ConnectionType|string $type, array $config = []): static
     {
@@ -91,21 +108,13 @@ class TerminalBuilder
     }
 
     /**
-     * Configure a local connection.
-     *
      * @param  array<string, mixed>  $options
-     * @return $this
      */
     public function local(array $options = []): static
     {
         return $this->connection(ConnectionType::Local, $options);
     }
 
-    /**
-     * Configure an SSH connection with password authentication.
-     *
-     * @return $this
-     */
     public function sshWithPassword(
         string $host,
         string $username,
@@ -120,11 +129,6 @@ class TerminalBuilder
         ]);
     }
 
-    /**
-     * Configure an SSH connection with key authentication.
-     *
-     * @return $this
-     */
     public function sshWithKey(
         string $host,
         string $username,
@@ -141,11 +145,6 @@ class TerminalBuilder
         ]);
     }
 
-    /**
-     * Set the connection using a ConnectionConfig object.
-     *
-     * @return $this
-     */
     public function withConfig(ConnectionConfig $config): static
     {
         $this->connection = $config;
@@ -153,12 +152,11 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set the allowed commands.
-     *
-     * @param  array<string>  $commands
-     * @return $this
-     */
+    // ========================================
+    // Command Configuration
+    // ========================================
+
+    /** @param  array<string>  $commands */
     public function allowedCommands(array $commands): static
     {
         $this->allowedCommands = $commands;
@@ -166,12 +164,7 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Add additional allowed commands.
-     *
-     * @param  array<string>  $commands
-     * @return $this
-     */
+    /** @param  array<string>  $commands */
     public function addAllowedCommands(array $commands): static
     {
         $existing = $this->allowedCommands ?? config('web-terminal.allowed_commands', []);
@@ -180,11 +173,6 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set the command timeout.
-     *
-     * @return $this
-     */
     public function timeout(int $seconds): static
     {
         $this->timeout = max(1, $seconds);
@@ -192,11 +180,131 @@ class TerminalBuilder
         return $this;
     }
 
+    // ========================================
+    // Permissions (enum-based)
+    // ========================================
+
     /**
-     * Set the terminal prompt.
+     * Set permissions using TerminalPermission enum values.
      *
-     * @return $this
+     * @param  array<TerminalPermission>  $permissions
      */
+    public function allow(array $permissions): static
+    {
+        $flags = TerminalPermission::resolveManyFlags($permissions);
+
+        if ($flags['allowAllCommands'] ?? false) {
+            $this->allowAllCommands = true;
+        }
+        if ($flags['allowPipes'] ?? false) {
+            $this->allowPipes = true;
+        }
+        if ($flags['allowRedirection'] ?? false) {
+            $this->allowRedirection = true;
+        }
+        if ($flags['allowChaining'] ?? false) {
+            $this->allowChaining = true;
+        }
+        if ($flags['allowExpansion'] ?? false) {
+            $this->allowExpansion = true;
+        }
+        if ($flags['allowAllShellOperators'] ?? false) {
+            $this->allowAllShellOperators = true;
+        }
+        if ($flags['allowInteractiveMode'] ?? false) {
+            $this->allowInteractiveMode = true;
+        }
+
+        return $this;
+    }
+
+    // ========================================
+    // Permissions (individual methods)
+    // ========================================
+
+    public function allowAllCommands(bool $allow = true): static
+    {
+        $this->allowAllCommands = $allow;
+
+        return $this;
+    }
+
+    public function allowPipes(bool $allow = true): static
+    {
+        $this->allowPipes = $allow;
+
+        return $this;
+    }
+
+    public function allowRedirection(bool $allow = true): static
+    {
+        $this->allowRedirection = $allow;
+
+        return $this;
+    }
+
+    public function allowChaining(bool $allow = true): static
+    {
+        $this->allowChaining = $allow;
+
+        return $this;
+    }
+
+    public function allowExpansion(bool $allow = true): static
+    {
+        $this->allowExpansion = $allow;
+
+        return $this;
+    }
+
+    public function allowAllShellOperators(bool $allow = true): static
+    {
+        $this->allowAllShellOperators = $allow;
+        $this->allowPipes = $allow;
+        $this->allowRedirection = $allow;
+        $this->allowChaining = $allow;
+        $this->allowExpansion = $allow;
+
+        return $this;
+    }
+
+    public function allowInteractiveMode(bool $allow = true): static
+    {
+        $this->allowInteractiveMode = $allow;
+
+        return $this;
+    }
+
+    // ========================================
+    // Environment & Shell
+    // ========================================
+
+    /** @param  array<string, string>  $environment */
+    public function environment(array $environment): static
+    {
+        $this->environment = $environment;
+
+        return $this;
+    }
+
+    public function loginShell(bool $useLoginShell = true): static
+    {
+        $this->useLoginShell = $useLoginShell;
+
+        return $this;
+    }
+
+    public function shell(string $shell): static
+    {
+        $this->shell = $shell;
+
+        return $this;
+    }
+
+    // ========================================
+    // UI Configuration
+    // ========================================
+
     public function prompt(string $prompt): static
     {
         $this->prompt = $prompt;
@@ -204,11 +312,6 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set the history limit.
-     *
-     * @return $this
-     */
     public function historyLimit(int $limit): static
     {
         $this->historyLimit = max(1, $limit);
@@ -216,11 +319,6 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set the maximum output lines.
-     *
-     * @return $this
-     */
     public function maxOutputLines(int $lines): static
     {
         $this->maxOutputLines = max(100, $lines);
@@ -228,11 +326,34 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set a unique key for the Livewire component.
-     *
-     * @return $this
-     */
+    public function height(string $height): static
+    {
+        $this->height = $height;
+
+        return $this;
+    }
+
+    public function startConnected(bool $connected = true): static
+    {
+        $this->startConnected = $connected;
+
+        return $this;
+    }
+
+    public function title(string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function windowControls(bool $show = true): static
+    {
+        $this->showWindowControls = $show;
+
+        return $this;
+    }
+
     public function key(string $key): static
     {
         $this->key = $key;
@@ -240,12 +361,27 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set custom metadata to be included in all log entries.
-     *
-     * @param  array<string, mixed>  $metadata  Custom metadata key-value pairs
-     * @return $this
-     */
+    // ========================================
+    // Logging Configuration
+    // ========================================
+
+    public function log(
+        ?bool $enabled = true,
+        ?bool $connections = null,
+        ?bool $commands = null,
+        ?bool $output = null,
+        ?string $identifier = null,
+    ): static {
+        $this->loggingEnabled = $enabled;
+        $this->logConnections = $connections;
+        $this->logCommands = $commands;
+        $this->logOutput = $output;
+        $this->logIdentifier = $identifier;
+
+        return $this;
+    }
+
+    /** @param  array<string, mixed>  $metadata */
     public function logMetadata(array $metadata): static
     {
         $this->logMetadata = $metadata;
@@ -253,11 +389,10 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set whether to disconnect when navigating away or refreshing the page.
-     *
-     * @return $this
-     */
+    // ========================================
+    // Session Management
+    // ========================================
+
     public function disconnectOnNavigate(bool $enabled = true): static
     {
         $this->disconnectOnNavigate = $enabled;
@@ -265,11 +400,6 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Disable automatic disconnect on page navigation.
-     *
-     * @return $this
-     */
     public function keepConnectedOnNavigate(): static
     {
         $this->disconnectOnNavigate = false;
@@ -277,12 +407,6 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Set the inactivity timeout in seconds.
-     * Set to 0 to disable auto-disconnect on inactivity.
-     *
-     * @return $this
-     */
     public function inactivityTimeout(int $seconds): static
     {
         $this->inactivityTimeout = max(0, $seconds);
@@ -290,11 +414,6 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Disable inactivity timeout (never auto-disconnect due to inactivity).
-     *
-     * @return $this
-     */
     public function noInactivityTimeout(): static
     {
         $this->inactivityTimeout = 0;
@@ -302,11 +421,23 @@ class TerminalBuilder
         return $this;
     }
 
-    /**
-     * Get the parameters for the component.
-     *
-     * @return array<string, mixed>
-     */
+    // ========================================
+    // Scripts
+    // ========================================
+
+    /** @param  array<mixed>  $scripts */
+    public function scripts(array $scripts): static
+    {
+        $this->scripts = $scripts;
+
+        return $this;
+    }
+
+    // ========================================
+    // Build & Render
+    // ========================================
+
+    /** @return array<string, mixed> */
     public function getParameters(): array
     {
         $params = array_filter([
@@ -316,21 +447,64 @@ class TerminalBuilder
             'prompt' => $this->prompt,
             'historyLimit' => $this->historyLimit,
             'maxOutputLines' => $this->maxOutputLines,
+            'height' => $this->height,
             'disconnectOnNavigate' => $this->disconnectOnNavigate,
             'inactivityTimeout' => $this->inactivityTimeout,
+            'loggingEnabled' => $this->loggingEnabled,
+            'logConnections' => $this->logConnections,
+            'logCommands' => $this->logCommands,
+            'logOutput' => $this->logOutput,
+            'logIdentifier' => $this->logIdentifier,
+            'title' => $this->title,
         ], fn ($value) => $value !== null);
 
-        // Always include logMetadata if set (even empty array is filtered above)
+        // Boolean flags — include when true
+        if ($this->allowAllCommands) {
+            $params['allowAllCommands'] = true;
+        }
+        if ($this->allowPipes) {
+            $params['allowPipes'] = true;
+        }
+        if ($this->allowRedirection) {
+            $params['allowRedirection'] = true;
+        }
+        if ($this->allowChaining) {
+            $params['allowChaining'] = true;
+        }
+        if ($this->allowExpansion) {
+            $params['allowExpansion'] = true;
+        }
+        if ($this->allowAllShellOperators) {
+            $params['allowAllShellOperators'] = true;
+        }
+        if ($this->allowInteractiveMode) {
+            $params['allowInteractiveMode'] = true;
+        }
+        if ($this->startConnected) {
+            $params['startConnected'] = true;
+        }
+        if (! $this->showWindowControls) {
+            $params['showWindowControls'] = false;
+        }
+        if ($this->useLoginShell) {
+            $params['useLoginShell'] = true;
+        }
+        if ($this->shell !== '/bin/bash') {
+            $params['shell'] = $this->shell;
+        }
+        if (! empty($this->environment)) {
+            $params['environment'] = $this->environment;
+        }
         if (! empty($this->logMetadata)) {
             $params['logMetadata'] = $this->logMetadata;
+        }
+        if (! empty($this->scripts)) {
+            $params['scripts'] = $this->scripts;
         }
 
         return $params;
     }
 
-    /**
-     * Render the terminal component.
-     */
     public function render(): View|HtmlString
     {
         $params = $this->getParameters();
@@ -347,9 +521,6 @@ class TerminalBuilder
         );
     }
 
-    /**
-     * Get the Blade component tag.
-     */
     public function toHtml(): string
     {
         $params = [];
@@ -382,6 +553,26 @@ class TerminalBuilder
             $params[':max-output-lines'] = $this->maxOutputLines;
         }
 
+        if ($this->height !== null) {
+            $params['height'] = $this->height;
+        }
+
+        if ($this->allowAllCommands) {
+            $params[':allow-all-commands'] = 'true';
+        }
+
+        if ($this->allowAllShellOperators) {
+            $params[':allow-all-shell-operators'] = 'true';
+        }
+
+        if ($this->allowInteractiveMode) {
+            $params[':allow-interactive-mode'] = 'true';
+        }
+
+        if ($this->startConnected) {
+            $params[':start-connected'] = 'true';
+        }
+
         if ($this->disconnectOnNavigate !== null) {
             $params[':disconnect-on-navigate'] = $this->disconnectOnNavigate ? 'true' : 'false';
         }
@@ -399,9 +590,6 @@ class TerminalBuilder
         return "<livewire:web-terminal {$paramsString}{$keyAttr} />";
     }
 
-    /**
-     * Magic method to convert to string.
-     */
     public function __toString(): string
     {
         return $this->toHtml();

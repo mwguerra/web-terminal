@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `allowInteractiveMode()` flag — enables interactive execution (PTY/tmux) for whitelisted commands, supporting artisan tinker, reverb:start, queue:work, and other interactive/long-running Laravel commands
+- `TerminalPermission` enum — declarative permission configuration via `allow([TerminalPermission::InteractiveMode, TerminalPermission::ShellOperators])`
+- `allow(array)` method on both Schema Component and TerminalBuilder for enum-based permission control
+- TerminalBuilder now has full parity with Schema Component: `allowAllCommands()`, `allowPipes()`, `allowRedirection()`, `allowChaining()`, `allowExpansion()`, `allowAllShellOperators()`, `allowInteractiveMode()`, `environment()`, `loginShell()`, `shell()`, `startConnected()`, `title()`, `windowControls()`, `height()`, `log()`, `scripts()`
+
+### Changed
+
+- Default Filament Terminal page now enables interactive mode and shell operators for artisan/composer commands
+
 ## [v2.1.1] - 2026-03-08
 
 ### Fixed

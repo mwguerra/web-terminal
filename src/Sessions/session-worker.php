@@ -45,10 +45,10 @@ if (! is_dir($sessionDir)) {
 
 // --- File paths ---
 
-$pidFile = $sessionDir . '/pid';
-$stdoutFile = $sessionDir . '/stdout';
-$stdinFile = $sessionDir . '/stdin';
-$exitCodeFile = $sessionDir . '/exit_code';
+$pidFile = $sessionDir.'/pid';
+$stdoutFile = $sessionDir.'/stdout';
+$stdinFile = $sessionDir.'/stdin';
+$exitCodeFile = $sessionDir.'/exit_code';
 
 // --- Write PID ---
 
@@ -71,7 +71,7 @@ $shouldExit = false;
 if (function_exists('pcntl_signal') && function_exists('pcntl_async_signals')) {
     pcntl_async_signals(true);
 
-    $signalHandler = function (int $signal) use (&$shouldExit): void {
+    $signalHandler = function (int $_signal) use (&$shouldExit): void {
         $shouldExit = true;
     };
 

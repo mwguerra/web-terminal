@@ -490,7 +490,7 @@ class FileSessionManager implements SessionManagerInterface
             return true;
         }
 
-        return posix_kill($pid, 0);
+        return @posix_kill($pid, 0);
     }
 
     protected function removeDirectory(string $dir): void

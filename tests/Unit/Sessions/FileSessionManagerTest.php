@@ -403,9 +403,22 @@ describe('FileSessionManager', function () {
 
     describe('setMaxSessionLifetime', function () {
         it('enforces minimum lifetime of 60 seconds', function () {
-            $result = $this->manager->setMaxSessionLifetime(10);
+            // Set to 10 (below minimum of 60)
+            $this->manager->setMaxSessionLifetime(10);
 
-            expect($result)->toBe($this->manager);
+            // Start a long-running process
+            $sessionId = startTracked($this->manager, $this->startedSessions, 'sleep 120');
+            usleep(300000);
+
+            // After 2 seconds, session should NOT be expired (minimum is 60s, not 10s)
+            sleep(2);
+            $this->manager->cleanup();
+
+            // Session should still exist because min lifetime is 60, not 10
+            expect($this->manager->hasSession($sessionId))->toBeTrue();
+            expect($this->manager->isRunning($sessionId))->toBeTrue();
+
+            $this->manager->terminate($sessionId);
         });
 
         it('returns fluent interface', function () {

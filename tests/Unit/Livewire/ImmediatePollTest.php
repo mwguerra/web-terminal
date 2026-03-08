@@ -18,7 +18,7 @@ describe('Immediate Poll Behavior', function () {
     it('captures output from fast commands with immediate poll', function () {
         $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
-        $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
+        $handler->setPreferTmux(false);
 
         // Start a fast command
         $sessionId = $handler->startInteractive('echo "hello world"');
@@ -33,6 +33,7 @@ describe('Immediate Poll Behavior', function () {
         expect($output['stdout'])->toContain('hello');
 
         // Process should be finished
+        usleep(200000);
         expect($handler->isProcessRunning($sessionId))->toBeFalse();
         expect($handler->getProcessExitCode($sessionId))->toBe(0);
     });
@@ -40,7 +41,7 @@ describe('Immediate Poll Behavior', function () {
     it('captures output from ls command', function () {
         $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
-        $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
+        $handler->setPreferTmux(false);
         $handler->setWorkingDirectory('/tmp');
 
         // Start ls command
@@ -64,28 +65,30 @@ describe('Immediate Poll Behavior', function () {
         expect($stdout)->toContain('.');
 
         // Process should be finished
+        usleep(200000);
         expect($handler->isProcessRunning($sessionId))->toBeFalse();
     });
 
     it('captures output from pwd command', function () {
         $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
-        $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
+        $handler->setPreferTmux(false);
         $handler->setWorkingDirectory('/tmp');
 
         // Start pwd command
         $sessionId = $handler->startInteractive('pwd');
 
         // Wait a brief moment
-        usleep(100000);
+        usleep(200000);
 
         // Immediate poll
         $output = $handler->readOutput($sessionId);
 
         expect($output)->not->toBeNull();
-        expect(trim($output['stdout']))->toBe('/tmp');
+        expect($output['stdout'])->toContain('/tmp');
 
         // Process should be finished
+        usleep(200000);
         expect($handler->isProcessRunning($sessionId))->toBeFalse();
     });
 

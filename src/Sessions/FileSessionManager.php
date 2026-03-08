@@ -59,7 +59,7 @@ class FileSessionManager implements SessionManagerInterface
         // Build worker command
         $workerScript = __DIR__.'/session-worker.php';
         $workerArgs = [
-            PHP_BINARY,
+            $this->resolvePhpBinary(),
             $workerScript,
             $sessionDir,
             $command,
@@ -67,14 +67,16 @@ class FileSessionManager implements SessionManagerInterface
             $env !== null ? json_encode($env) : '',
         ];
 
+        $errorLog = $sessionDir.'/worker_error.log';
         $shellCommand = sprintf(
-            'nohup %s %s %s %s %s %s > /dev/null 2>&1 &',
+            'nohup %s %s %s %s %s %s > /dev/null 2>%s &',
             escapeshellarg($workerArgs[0]),
             escapeshellarg($workerArgs[1]),
             escapeshellarg($workerArgs[2]),
             escapeshellarg($workerArgs[3]),
             escapeshellarg($workerArgs[4]),
             escapeshellarg($workerArgs[5]),
+            escapeshellarg($errorLog),
         );
 
         shell_exec($shellCommand);
@@ -96,10 +98,19 @@ class FileSessionManager implements SessionManagerInterface
         }
 
         if ($pid === null) {
+            // Read error log for debugging
+            $errorOutput = '';
+            if (file_exists($errorLog)) {
+                $errorOutput = trim((string) file_get_contents($errorLog));
+            }
+
             // Cleanup on failure
             $this->removeDirectory($sessionDir);
 
-            throw new \RuntimeException('Failed to start session worker: PID file not created');
+            throw new \RuntimeException(
+                'Failed to start session worker: PID file not created.'
+                .($errorOutput !== '' ? ' Worker error: '.$errorOutput : '')
+            );
         }
 
         $sessionData = new SharedSessionData(
@@ -483,6 +494,40 @@ class FileSessionManager implements SessionManagerInterface
     protected function removeSessionData(string $sessionId): void
     {
         Cache::forget(self::CACHE_PREFIX.$sessionId);
+    }
+
+    protected function resolvePhpBinary(): string
+    {
+        // PHP_BINARY returns 'php-fpm' under FPM, which can't run CLI scripts.
+        // Try to find the CLI binary in the same directory or common locations.
+        $binary = PHP_BINARY;
+        $dir = dirname($binary);
+
+        // If already a CLI binary, use it
+        if (! str_contains(basename($binary), 'fpm')) {
+            return $binary;
+        }
+
+        // Look for 'php' CLI in the same directory as php-fpm
+        $cliBinary = $dir.'/php';
+        if (is_executable($cliBinary)) {
+            return $cliBinary;
+        }
+
+        // Try common PHP CLI paths
+        foreach (['/usr/local/bin/php', '/usr/bin/php', '/opt/homebrew/bin/php'] as $path) {
+            if (is_executable($path)) {
+                return $path;
+            }
+        }
+
+        // Last resort: rely on PATH
+        $which = trim((string) shell_exec('which php 2>/dev/null'));
+        if ($which !== '' && is_executable($which)) {
+            return $which;
+        }
+
+        return $binary;
     }
 
     protected function isPidAlive(int $pid): bool

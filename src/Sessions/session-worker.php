@@ -87,7 +87,8 @@ $descriptors = [
     2 => ['pty'],
 ];
 
-$envVars = $env;
+// Merge provided env with current environment so PATH etc. are preserved
+$envVars = $env !== null ? array_merge(getenv(), $env) : null;
 $process = proc_open($command, $descriptors, $pipes, $cwd, $envVars);
 
 if (! is_resource($process)) {

@@ -1194,6 +1194,11 @@ class WebTerminal extends Component
         $this->addOutput(TerminalOutput::info('Keyboard shortcuts:'));
         $this->addOutput(TerminalOutput::stdout('  Up/Down - Navigate command history'));
         $this->addOutput(TerminalOutput::stdout('  Enter   - Execute command'));
+        $this->addOutput(TerminalOutput::stdout('  Ctrl+C  - Cancel running process or script'));
+        $this->addOutput(TerminalOutput::info(''));
+        $this->addOutput(TerminalOutput::info('Clipboard:'));
+        $this->addOutput(TerminalOutput::stdout('  Hover   - Copy button appears on command blocks'));
+        $this->addOutput(TerminalOutput::stdout('  Paste   - Multi-line paste shows confirmation modal'));
     }
 
     /**

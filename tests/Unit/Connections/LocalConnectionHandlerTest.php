@@ -262,9 +262,8 @@ describe('LocalConnectionHandler', function () {
     describe('interactive mode', function () {
         beforeEach(function () {
             $this->handler->connect(ConnectionConfig::local());
-            // Use ProcessSessionManager for these tests (disable tmux preference)
-            // TmuxSessionManager is tested separately
-            $this->handler->setPreferTmux(false);
+            // Force ProcessSessionManager for these tests (FileSessionManager merges stderr via PTY)
+            $this->handler->setSessionManager(new \MWGuerra\WebTerminal\Sessions\ProcessSessionManager);
         });
 
         afterEach(function () {

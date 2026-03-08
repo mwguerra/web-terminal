@@ -92,7 +92,8 @@ describe('Immediate Poll Behavior', function () {
     it('captures stderr from failed commands', function () {
         $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
-        $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
+        // Force ProcessSessionManager — FileSessionManager merges stderr into stdout via PTY
+        $handler->setSessionManager(new \MWGuerra\WebTerminal\Sessions\ProcessSessionManager);
 
         // Start a command that produces stderr
         $sessionId = $handler->startInteractive('ls /nonexistent_directory_xyz');

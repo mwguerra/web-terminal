@@ -275,6 +275,12 @@ class FileSessionManager implements SessionManagerInterface
     public function terminate(string $sessionId): bool
     {
         $sessionData = $this->getSessionData($sessionId);
+        $sessionDir = $this->sessionBaseDir.'/'.$sessionId;
+
+        // Return false if session doesn't exist at all
+        if ($sessionData === null && ! is_dir($sessionDir)) {
+            return false;
+        }
 
         if ($sessionData !== null && $sessionData->pid > 0) {
             $pid = $sessionData->pid;
@@ -291,7 +297,6 @@ class FileSessionManager implements SessionManagerInterface
         }
 
         // Remove session directory
-        $sessionDir = $this->sessionBaseDir.'/'.$sessionId;
         if (is_dir($sessionDir)) {
             $this->removeDirectory($sessionDir);
         }

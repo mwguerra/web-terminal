@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v2.1.2] - 2026-03-08
+
 ### Added
 
 - `allowInteractiveMode()` flag — enables interactive execution (PTY/tmux) for whitelisted commands, supporting artisan tinker, reverb:start, queue:work, and other interactive/long-running Laravel commands
@@ -21,6 +23,11 @@ All notable changes to this project will be documented in this file.
 
 - Multi-word wildcard patterns in `CommandValidator` now correctly match commands like `php artisan *` against `php artisan tinker`
 - Interactive sessions (REPLs, long-running commands) now persist across PHP-FPM worker processes via FileSessionManager
+- REPL output rendering: prompts and user input now display on the same line (`> 1 + 1`), input lines render in command color (green)
+- ANSI escape sequence stripping for interactive output (private mode, OSC, character set, keypad sequences)
+- PTY input echo deduplication — typed commands no longer appear twice in terminal output
+- Xdebug/JIT startup warnings suppressed in interactive sessions via `XDEBUG_MODE=off` in child processes
+- Stderr now properly displayed for failed commands in interactive mode
 
 ## [v2.1.1] - 2026-03-08
 

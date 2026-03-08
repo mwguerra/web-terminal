@@ -883,6 +883,33 @@ class WebTerminal extends Component
     }
 
     /**
+     * Get all output as plain text (ANSI stripped).
+     */
+    public function getPlainTextOutput(): string
+    {
+        $lines = [];
+
+        foreach ($this->output as $line) {
+            $content = trim($line['content'] ?? '');
+            if ($content === '') {
+                continue;
+            }
+
+            $lines[] = AnsiToHtml::strip($content);
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Clear all terminal output.
+     */
+    public function clearOutput(): void
+    {
+        $this->output = [];
+    }
+
+    /**
      * Render the component.
      */
     public function render(): View

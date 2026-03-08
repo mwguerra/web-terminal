@@ -1674,9 +1674,6 @@ class WebTerminal extends Component
             return true;
         }));
 
-        // Remove lines that are just a prompt character (e.g., ">", ">>> ")
-        $lines = array_values(array_filter($lines, fn (string $line) => ! preg_match('/^\s*>{1,3}\s*$/', $line)));
-
         return $lines;
     }
 

@@ -155,8 +155,6 @@ final class SensitiveValue implements JsonSerializable, Stringable
 
     /**
      * Prevent the value from being serialized in JSON.
-     *
-     * @return string
      */
     public function jsonSerialize(): string
     {

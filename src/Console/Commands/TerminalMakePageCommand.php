@@ -259,7 +259,7 @@ class TerminalMakePageCommand extends Command
         if (! $this->panel) {
             return [
                 app_path('Filament/Pages'),
-                app()->getNamespace() . 'Filament\\Pages',
+                app()->getNamespace().'Filament\\Pages',
             ];
         }
 
@@ -275,7 +275,7 @@ class TerminalMakePageCommand extends Command
 
         return [
             Arr::first($directories) ?? app_path('Filament/Pages'),
-            Arr::first($namespaces) ?? app()->getNamespace() . 'Filament\\Pages',
+            Arr::first($namespaces) ?? app()->getNamespace().'Filament\\Pages',
         ];
     }
 
@@ -286,7 +286,7 @@ class TerminalMakePageCommand extends Command
     {
         [$directory, $namespace] = $this->getPageDirectoryAndNamespace();
 
-        $path = $directory . '/' . $name . '.php';
+        $path = $directory.'/'.$name.'.php';
 
         if ($this->files->exists($path) && ! $this->option('force')) {
             if ($this->option('no-interaction')) {
@@ -347,11 +347,11 @@ class TerminalMakePageCommand extends Command
      */
     protected function generateFromStub(string $stubName, array $replacements): string
     {
-        $stubPath = __DIR__ . '/../../../stubs/' . $stubName;
+        $stubPath = __DIR__.'/../../../stubs/'.$stubName;
         $content = $this->files->get($stubPath);
 
         foreach ($replacements as $key => $value) {
-            $content = str_replace('{{ ' . $key . ' }}', $value, $content);
+            $content = str_replace('{{ '.$key.' }}', $value, $content);
         }
 
         return $content;

@@ -97,7 +97,7 @@ interface ConnectionHandlerInterface
      * Start an interactive command session.
      *
      * @param  string  $command  The command to execute
-     * @return string  The session ID for subsequent operations
+     * @return string The session ID for subsequent operations
      *
      * @throws ConnectionException If not connected or interactive mode not supported
      */
@@ -109,7 +109,7 @@ interface ConnectionHandlerInterface
      * Returns incremental output since last read (not cumulative).
      *
      * @param  string  $sessionId  The session ID from startInteractive()
-     * @return array{stdout: string, stderr: string}|null  Output or null if session not found
+     * @return array{stdout: string, stderr: string}|null Output or null if session not found
      */
     public function readOutput(string $sessionId): ?array;
 
@@ -118,7 +118,7 @@ interface ConnectionHandlerInterface
      *
      * @param  string  $sessionId  The session ID from startInteractive()
      * @param  string  $input  The input to send (newline appended automatically)
-     * @return bool  True if sent successfully
+     * @return bool True if sent successfully
      */
     public function writeInput(string $sessionId, string $input): bool;
 
@@ -133,7 +133,7 @@ interface ConnectionHandlerInterface
      * Get the exit code of a finished interactive session.
      *
      * @param  string  $sessionId  The session ID from startInteractive()
-     * @return int|null  Exit code or null if still running/not found
+     * @return int|null Exit code or null if still running/not found
      */
     public function getProcessExitCode(string $sessionId): ?int;
 
@@ -141,7 +141,7 @@ interface ConnectionHandlerInterface
      * Terminate an interactive session.
      *
      * @param  string  $sessionId  The session ID from startInteractive()
-     * @return bool  True if terminated successfully
+     * @return bool True if terminated successfully
      */
     public function terminateProcess(string $sessionId): bool;
 }

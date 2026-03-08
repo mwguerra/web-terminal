@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Livewire\Livewire;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
-use MWGuerra\WebTerminal\Enums\ConnectionType;
 use MWGuerra\WebTerminal\Livewire\WebTerminal;
 
 describe('WebTerminal Component', function () {

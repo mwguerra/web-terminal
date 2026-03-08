@@ -186,7 +186,7 @@ class TerminalLog extends Model
         }
 
         if ($this->execution_time_seconds < 60) {
-            return $this->execution_time_seconds . 's';
+            return $this->execution_time_seconds.'s';
         }
 
         $minutes = floor($this->execution_time_seconds / 60);

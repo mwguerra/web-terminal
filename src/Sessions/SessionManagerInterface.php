@@ -23,7 +23,7 @@ interface SessionManagerInterface
      * @param  string|null  $cwd  Working directory
      * @param  array<string, string>|null  $env  Environment variables
      * @param  float|null  $timeout  Timeout in seconds (may be ignored by some implementations)
-     * @return string  The session ID
+     * @return string The session ID
      */
     public function start(
         string $command,
@@ -38,7 +38,7 @@ interface SessionManagerInterface
      * Returns only new output since last call (not cumulative).
      *
      * @param  string  $sessionId  The session ID
-     * @return array{stdout: string, stderr: string}|null  Output or null if session not found
+     * @return array{stdout: string, stderr: string}|null Output or null if session not found
      */
     public function getOutput(string $sessionId): ?array;
 
@@ -47,7 +47,7 @@ interface SessionManagerInterface
      *
      * @param  string  $sessionId  The session ID
      * @param  string  $input  The input to send (newline appended automatically)
-     * @return bool  True if input was sent
+     * @return bool True if input was sent
      */
     public function sendInput(string $sessionId, string $input): bool;
 
@@ -58,7 +58,7 @@ interface SessionManagerInterface
      *
      * @param  string  $sessionId  The session ID
      * @param  string  $input  The raw input to send
-     * @return bool  True if input was sent
+     * @return bool True if input was sent
      */
     public function sendRawInput(string $sessionId, string $input): bool;
 
@@ -66,7 +66,7 @@ interface SessionManagerInterface
      * Check if a process is still running.
      *
      * @param  string  $sessionId  The session ID
-     * @return bool  True if running
+     * @return bool True if running
      */
     public function isRunning(string $sessionId): bool;
 
@@ -74,7 +74,7 @@ interface SessionManagerInterface
      * Get the exit code of a finished process.
      *
      * @param  string  $sessionId  The session ID
-     * @return int|null  Exit code or null if still running/not found
+     * @return int|null Exit code or null if still running/not found
      */
     public function getExitCode(string $sessionId): ?int;
 
@@ -82,7 +82,7 @@ interface SessionManagerInterface
      * Terminate a running process.
      *
      * @param  string  $sessionId  The session ID
-     * @return bool  True if terminated
+     * @return bool True if terminated
      */
     public function terminate(string $sessionId): bool;
 
@@ -115,7 +115,6 @@ interface SessionManagerInterface
      * Set maximum session lifetime.
      *
      * @param  int  $seconds  Lifetime in seconds
-     * @return static
      */
     public function setMaxSessionLifetime(int $seconds): static;
 }

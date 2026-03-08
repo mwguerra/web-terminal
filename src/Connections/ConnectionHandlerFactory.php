@@ -49,12 +49,12 @@ class ConnectionHandlerFactory
     {
         // Check for custom handler first
         if (isset($this->customHandlers[$type->value])) {
-            return new $this->customHandlers[$type->value]();
+            return new $this->customHandlers[$type->value];
         }
 
         return match ($type) {
-            ConnectionType::Local => new LocalConnectionHandler(),
-            ConnectionType::SSH => new SSHConnectionHandler(),
+            ConnectionType::Local => new LocalConnectionHandler,
+            ConnectionType::SSH => new SSHConnectionHandler,
         };
     }
 
@@ -128,7 +128,7 @@ class ConnectionHandlerFactory
      */
     public function local(): LocalConnectionHandler
     {
-        return new LocalConnectionHandler();
+        return new LocalConnectionHandler;
     }
 
     /**
@@ -136,6 +136,6 @@ class ConnectionHandlerFactory
      */
     public function ssh(): SSHConnectionHandler
     {
-        return new SSHConnectionHandler();
+        return new SSHConnectionHandler;
     }
 }

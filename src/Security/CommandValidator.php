@@ -384,7 +384,7 @@ class CommandValidator
         $commands = array_keys($this->exactMatches);
 
         foreach (array_keys($this->wildcardCommands) as $binary) {
-            $commands[] = $binary . ' *';
+            $commands[] = $binary.' *';
         }
 
         return $commands;

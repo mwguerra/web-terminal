@@ -277,7 +277,7 @@ class RateLimiter
      */
     protected function resolveKey(string $key): string
     {
-        return $this->prefix . ':' . $key;
+        return $this->prefix.':'.$key;
     }
 
     /**

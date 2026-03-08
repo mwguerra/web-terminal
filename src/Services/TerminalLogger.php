@@ -194,7 +194,7 @@ class TerminalLogger
                 $truncate = (bool) ($this->config['truncate_output'] ?? true);
 
                 if ($truncate && strlen($data['output']) > $maxLength) {
-                    $data['output'] = substr($data['output'], 0, $maxLength) . "\n... [truncated]";
+                    $data['output'] = substr($data['output'], 0, $maxLength)."\n... [truncated]";
                 }
             } else {
                 // Output logging disabled, don't include output
@@ -218,7 +218,7 @@ class TerminalLogger
         $truncate = (bool) ($this->config['truncate_output'] ?? true);
 
         if ($truncate && strlen($output) > $maxLength) {
-            $output = substr($output, 0, $maxLength) . "\n... [truncated]";
+            $output = substr($output, 0, $maxLength)."\n... [truncated]";
         }
 
         $data['terminal_session_id'] = $sessionId;

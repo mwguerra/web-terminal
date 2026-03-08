@@ -52,7 +52,7 @@ class TestableConnectionHandler extends AbstractConnectionHandler
 
 describe('AbstractConnectionHandler', function () {
     beforeEach(function () {
-        $this->handler = new TestableConnectionHandler();
+        $this->handler = new TestableConnectionHandler;
     });
 
     it('implements ConnectionHandlerInterface', function () {

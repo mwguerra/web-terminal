@@ -6,7 +6,7 @@ use MWGuerra\WebTerminal\Terminal\AnsiToHtml;
 
 describe('AnsiToHtml', function () {
     beforeEach(function () {
-        $this->converter = new AnsiToHtml();
+        $this->converter = new AnsiToHtml;
     });
 
     describe('convert', function () {

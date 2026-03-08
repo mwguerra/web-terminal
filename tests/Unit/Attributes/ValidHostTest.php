@@ -6,7 +6,7 @@ use MWGuerra\WebTerminal\Attributes\ValidHost;
 
 describe('ValidHost', function () {
     it('validates localhost', function () {
-        $validator = new ValidHost();
+        $validator = new ValidHost;
 
         expect($validator->validate('localhost'))->toBeTrue();
         expect($validator->validate('127.0.0.1'))->toBeTrue();
@@ -21,7 +21,7 @@ describe('ValidHost', function () {
     });
 
     it('validates IPv4 addresses', function () {
-        $validator = new ValidHost();
+        $validator = new ValidHost;
 
         expect($validator->validate('192.168.1.1'))->toBeTrue();
         expect($validator->validate('10.0.0.1'))->toBeTrue();
@@ -30,7 +30,7 @@ describe('ValidHost', function () {
     });
 
     it('validates IPv6 addresses', function () {
-        $validator = new ValidHost();
+        $validator = new ValidHost;
 
         expect($validator->validate('2001:0db8:85a3:0000:0000:8a2e:0370:7334'))->toBeTrue();
         expect($validator->validate('::1'))->toBeTrue();
@@ -45,7 +45,7 @@ describe('ValidHost', function () {
     });
 
     it('validates hostnames', function () {
-        $validator = new ValidHost();
+        $validator = new ValidHost;
 
         expect($validator->validate('example.com'))->toBeTrue();
         expect($validator->validate('sub.domain.example.com'))->toBeTrue();
@@ -54,7 +54,7 @@ describe('ValidHost', function () {
     });
 
     it('rejects invalid hostnames', function () {
-        $validator = new ValidHost();
+        $validator = new ValidHost;
 
         expect($validator->validate('-invalid.com'))->toBeFalse();
         expect($validator->validate('invalid-.com'))->toBeFalse();

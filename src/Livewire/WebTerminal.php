@@ -14,18 +14,15 @@ use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Data\Script;
 use MWGuerra\WebTerminal\Data\ScriptExecution;
 use MWGuerra\WebTerminal\Data\TerminalOutput;
-use MWGuerra\WebTerminal\Enums\ScriptCommandStatus;
-use MWGuerra\WebTerminal\Enums\ConnectionType;
 use MWGuerra\WebTerminal\Events\CommandExecutedEvent;
 use MWGuerra\WebTerminal\Exceptions\ConnectionException;
 use MWGuerra\WebTerminal\Exceptions\RateLimitException;
-use MWGuerra\WebTerminal\Exceptions\ValidationException;
 use MWGuerra\WebTerminal\Models\TerminalLog;
 use MWGuerra\WebTerminal\Security\CommandSanitizer;
-use MWGuerra\WebTerminal\Services\TerminalLogger;
-use MWGuerra\WebTerminal\Terminal\AnsiToHtml;
 use MWGuerra\WebTerminal\Security\CommandValidator;
 use MWGuerra\WebTerminal\Security\RateLimiter;
+use MWGuerra\WebTerminal\Services\TerminalLogger;
+use MWGuerra\WebTerminal\Terminal\AnsiToHtml;
 
 /**
  * Web Terminal Livewire Component.
@@ -183,7 +180,7 @@ class WebTerminal extends Component
      */
     protected function getSessionKey(): string
     {
-        return 'web-terminal.connection.' . $this->componentId;
+        return 'web-terminal.connection.'.$this->componentId;
     }
 
     /**
@@ -641,7 +638,7 @@ class WebTerminal extends Component
         }
 
         // Add command to output and history
-        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt() . $command));
+        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt().$command));
         $this->addToHistory($command);
 
         // Check rate limiting
@@ -707,7 +704,7 @@ class WebTerminal extends Component
 
         try {
             // Actually establish and test the connection
-            $factory = new ConnectionHandlerFactory();
+            $factory = new ConnectionHandlerFactory;
             $config = ConnectionConfig::fromArray($this->getConnectionConfig());
             $this->handler = $factory->createAndConnect($config);
 
@@ -733,11 +730,11 @@ class WebTerminal extends Component
         } catch (ConnectionException $e) {
             // Connection failed - stay disconnected and show error
             $this->handler = null;
-            $this->addOutput(TerminalOutput::error('Connection failed: ' . $e->getUserMessage()));
+            $this->addOutput(TerminalOutput::error('Connection failed: '.$e->getUserMessage()));
         } catch (\Throwable $e) {
             // Unexpected error - stay disconnected and show error
             $this->handler = null;
-            $this->addOutput(TerminalOutput::error('Connection error: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Connection error: '.$e->getMessage()));
         }
     }
 
@@ -768,7 +765,7 @@ class WebTerminal extends Component
             if ($port !== null) {
                 $desc .= ":{$port}";
             }
-            $desc .= ")";
+            $desc .= ')';
         }
 
         return $desc;
@@ -875,11 +872,11 @@ class WebTerminal extends Component
      * Convert ANSI escape codes to HTML for display.
      *
      * @param  string  $content  Content that may contain ANSI escape codes
-     * @return string  HTML-safe content with ANSI codes converted to styled spans
+     * @return string HTML-safe content with ANSI codes converted to styled spans
      */
     public function convertAnsiToHtml(string $content): string
     {
-        return (new AnsiToHtml())->convert($content);
+        return (new AnsiToHtml)->convert($content);
     }
 
     /**
@@ -963,7 +960,7 @@ class WebTerminal extends Component
             // Log command execution (including output in same entry)
             if ($this->terminalSessionId !== '') {
                 $logger = $this->getLogger();
-                $outputText = trim($result->stdout . "\n" . $result->stderr);
+                $outputText = trim($result->stdout."\n".$result->stderr);
                 $config = $this->getConnectionConfig();
 
                 $logger->logCommand($this->terminalSessionId, $command, [
@@ -981,14 +978,14 @@ class WebTerminal extends Component
             $this->dispatchAuditEvent($command, $result);
 
         } catch (ConnectionException $e) {
-            $errorMsg = 'Connection error: ' . $e->getUserMessage();
+            $errorMsg = 'Connection error: '.$e->getUserMessage();
             $this->addOutput(TerminalOutput::error($errorMsg));
             $this->logError($command, $errorMsg);
         } catch (RateLimitException $e) {
             $this->addOutput(TerminalOutput::error($e->getUserMessage()));
             $this->logError($command, $e->getUserMessage());
         } catch (\Throwable $e) {
-            $errorMsg = 'Error executing command: ' . $e->getMessage();
+            $errorMsg = 'Error executing command: '.$e->getMessage();
             $this->addOutput(TerminalOutput::error($errorMsg));
             $this->logError($command, $errorMsg);
         }
@@ -1076,14 +1073,14 @@ class WebTerminal extends Component
             if ($targetDir === '' || $targetDir === '~') {
                 $cdCommand = 'cd ~';
             } else {
-                $cdCommand = 'cd ' . escapeshellarg($targetDir);
+                $cdCommand = 'cd '.escapeshellarg($targetDir);
             }
 
             // Execute cd && pwd to change directory and get the new path
             // Don't set working directory to '~' - it doesn't expand when quoted
             $workingDir = ($this->currentDirectory === '~') ? null : $this->currentDirectory;
             $handler->setWorkingDirectory($workingDir);
-            $result = $handler->execute($cdCommand . ' && pwd');
+            $result = $handler->execute($cdCommand.' && pwd');
 
             if ($result->exitCode === 0 && $result->stdout !== '') {
                 // Update current directory from pwd output
@@ -1097,7 +1094,7 @@ class WebTerminal extends Component
                 $this->addOutput(TerminalOutput::error($errorMsg));
             }
         } catch (\Throwable $e) {
-            $this->addOutput(TerminalOutput::error('Error changing directory: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Error changing directory: '.$e->getMessage()));
         }
     }
 
@@ -1108,7 +1105,7 @@ class WebTerminal extends Component
     {
         // Handle empty cd (go to home)
         if ($targetDir === '' || $targetDir === '~') {
-            $homeDir = getenv('HOME') ?: '/home/' . get_current_user();
+            $homeDir = getenv('HOME') ?: '/home/'.get_current_user();
             $this->currentDirectory = $homeDir;
 
             return;
@@ -1116,13 +1113,13 @@ class WebTerminal extends Component
 
         // Handle ~ prefix
         if (str_starts_with($targetDir, '~/')) {
-            $homeDir = getenv('HOME') ?: '/home/' . get_current_user();
-            $targetDir = $homeDir . substr($targetDir, 1);
+            $homeDir = getenv('HOME') ?: '/home/'.get_current_user();
+            $targetDir = $homeDir.substr($targetDir, 1);
         }
 
         // Handle relative paths
         if (! str_starts_with($targetDir, '/')) {
-            $targetDir = rtrim($this->currentDirectory, '/') . '/' . $targetDir;
+            $targetDir = rtrim($this->currentDirectory, '/').'/'.$targetDir;
         }
 
         // Resolve path (handle .. and .)
@@ -1170,7 +1167,7 @@ class WebTerminal extends Component
      */
     protected function showHistory(): void
     {
-        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt() . 'history'));
+        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt().'history'));
 
         if (empty($this->history)) {
             $this->addOutput(TerminalOutput::info('No commands in history.'));
@@ -1188,7 +1185,7 @@ class WebTerminal extends Component
      */
     protected function showHelp(): void
     {
-        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt() . 'help'));
+        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt().'help'));
         $this->addOutput(TerminalOutput::info('Built-in commands:'));
         $this->addOutput(TerminalOutput::stdout('  clear   - Clear terminal output'));
         $this->addOutput(TerminalOutput::stdout('  history - Show command history'));
@@ -1299,7 +1296,7 @@ class WebTerminal extends Component
 
         // Recreate handler if needed (handlers can't be serialized by Livewire)
         if ($this->handler === null) {
-            $factory = new ConnectionHandlerFactory();
+            $factory = new ConnectionHandlerFactory;
             $config = ConnectionConfig::fromArray($this->getConnectionConfig());
             $this->handler = $factory->createAndConnect($config);
 
@@ -1561,7 +1558,7 @@ class WebTerminal extends Component
                 $this->finishInteractiveSession($exitCode);
             }
         } catch (\Throwable $e) {
-            $this->addOutput(TerminalOutput::error('Error reading output: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Error reading output: '.$e->getMessage()));
             $this->resetInteractiveState();
         }
     }
@@ -1569,7 +1566,7 @@ class WebTerminal extends Component
     /**
      * Replace interactive output from session start (for full-screen applications).
      *
-     * @param array{stdout: string, stderr: string, full_screen?: bool} $output
+     * @param  array{stdout: string, stderr: string, full_screen?: bool}  $output
      */
     protected function replaceInteractiveOutput(array $output): void
     {
@@ -1583,7 +1580,7 @@ class WebTerminal extends Component
     /**
      * Append interactive output incrementally.
      *
-     * @param array{stdout: string, stderr: string, full_screen?: bool} $output
+     * @param  array{stdout: string, stderr: string, full_screen?: bool}  $output
      */
     protected function appendInteractiveOutput(array $output): void
     {
@@ -1630,7 +1627,7 @@ class WebTerminal extends Component
                 $this->addOutput(TerminalOutput::error('Failed to send input to process.'));
             }
         } catch (\Throwable $e) {
-            $this->addOutput(TerminalOutput::error('Error sending input: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Error sending input: '.$e->getMessage()));
         }
     }
 
@@ -1706,7 +1703,7 @@ class WebTerminal extends Component
             $handler->terminateProcess($this->activeSessionId);
             $this->addOutput(TerminalOutput::info('^C'));
         } catch (\Throwable $e) {
-            $this->addOutput(TerminalOutput::error('Error cancelling process: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Error cancelling process: '.$e->getMessage()));
         } finally {
             // Log the cancelled command (exit code 130 = 128 + SIGINT)
             $this->logInteractiveCommand(130);
@@ -1757,7 +1754,7 @@ class WebTerminal extends Component
                 $this->dispatch('terminal-interactive-started');
             }
         } catch (\Throwable $e) {
-            $this->addOutput(TerminalOutput::error('Error starting command: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Error starting command: '.$e->getMessage()));
             $this->resetInteractiveState();
         }
     }
@@ -1982,7 +1979,7 @@ class WebTerminal extends Component
             $unauthorized = $script->getUnauthorizedCommands($this->allowedCommands);
             if (! empty($unauthorized)) {
                 $this->addOutput(TerminalOutput::error(
-                    'Script contains unauthorized commands: ' . implode(', ', $unauthorized)
+                    'Script contains unauthorized commands: '.implode(', ', $unauthorized)
                 ));
 
                 return;
@@ -1993,14 +1990,14 @@ class WebTerminal extends Component
         $this->showScriptPanel = true;
 
         // Initialize execution state
-        $execution = new ScriptExecution();
+        $execution = new ScriptExecution;
         $execution->start($script->getKey(), $script->getLabel(), $script->getCommands());
         $this->scriptExecution = $execution->toArray();
 
         // Log script start
         if ($this->terminalSessionId !== '') {
             $logger = $this->getLogger();
-            $logger->logCommand($this->terminalSessionId, 'SCRIPT_START:' . $script->getKey(), [
+            $logger->logCommand($this->terminalSessionId, 'SCRIPT_START:'.$script->getKey(), [
                 'connection_type' => $this->getConnectionTypeForLog(),
                 'is_script' => true,
                 'script_key' => $script->getKey(),
@@ -2065,7 +2062,7 @@ class WebTerminal extends Component
         $script = $scriptData ? Script::fromArray($scriptData) : null;
 
         // Add command to output
-        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt() . $command));
+        $this->addOutput(TerminalOutput::command($this->getFormattedPrompt().$command));
 
         $startTime = microtime(true);
 
@@ -2132,7 +2129,7 @@ class WebTerminal extends Component
 
         } catch (\Throwable $e) {
             $executionTime = microtime(true) - $startTime;
-            $this->addOutput(TerminalOutput::error('Error: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Error: '.$e->getMessage()));
             $this->resetInteractiveState();
             $this->scriptAwaitingInput = false;
             $this->handleScriptCommandResult(1, $e->getMessage(), $executionTime);
@@ -2251,12 +2248,12 @@ class WebTerminal extends Component
         // Show completion message
         if ($failed) {
             $this->addOutput(TerminalOutput::error(
-                "Script '{$execution->getScriptLabel()}' failed at command " .
-                ($execution->getCurrentCommandIndex() + 1) . " of {$execution->getTotalCommands()}"
+                "Script '{$execution->getScriptLabel()}' failed at command ".
+                ($execution->getCurrentCommandIndex() + 1)." of {$execution->getTotalCommands()}"
             ));
         } else {
             $this->addOutput(TerminalOutput::info(
-                "Script '{$execution->getScriptLabel()}' completed successfully. " .
+                "Script '{$execution->getScriptLabel()}' completed successfully. ".
                 "{$execution->getSuccessCount()} of {$execution->getTotalCommands()} commands succeeded."
             ));
         }
@@ -2275,7 +2272,7 @@ class WebTerminal extends Component
         }
 
         $logger = $this->getLogger();
-        $logger->logCommand($this->terminalSessionId, 'SCRIPT_END:' . ($execution->getScriptKey() ?? ''), [
+        $logger->logCommand($this->terminalSessionId, 'SCRIPT_END:'.($execution->getScriptKey() ?? ''), [
             'connection_type' => $this->getConnectionTypeForLog(),
             'is_script' => true,
             'script_key' => $execution->getScriptKey(),
@@ -2313,7 +2310,7 @@ class WebTerminal extends Component
         $this->logScriptEnd($execution);
 
         $this->addOutput(TerminalOutput::info(
-            "Script '{$execution->getScriptLabel()}' cancelled by user. " .
+            "Script '{$execution->getScriptLabel()}' cancelled by user. ".
             "{$execution->getCompletedCount()} of {$execution->getTotalCommands()} commands completed."
         ));
 
@@ -2390,7 +2387,7 @@ class WebTerminal extends Component
                 $this->handleScriptCommandResult($exitCode ?? 0, $outputText, $executionTime);
             }
         } catch (\Throwable $e) {
-            $this->addOutput(TerminalOutput::error('Error reading output: ' . $e->getMessage()));
+            $this->addOutput(TerminalOutput::error('Error reading output: '.$e->getMessage()));
             $executionTime = $this->interactiveStartTime > 0
                 ? microtime(true) - $this->interactiveStartTime
                 : 0;
@@ -2439,6 +2436,6 @@ class WebTerminal extends Component
      */
     public static function make(): TerminalBuilder
     {
-        return new TerminalBuilder();
+        return new TerminalBuilder;
     }
 }

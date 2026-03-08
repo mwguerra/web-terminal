@@ -77,7 +77,7 @@ describe('CommandValidator', function () {
 
     describe('command parsing', function () {
         it('parses simple commands', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator->parseCommand('ls');
 
@@ -87,7 +87,7 @@ describe('CommandValidator', function () {
         });
 
         it('parses commands with arguments', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator->parseCommand('ls -la /tmp');
 
@@ -97,7 +97,7 @@ describe('CommandValidator', function () {
         });
 
         it('handles quoted strings', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator->parseCommand('echo "hello world"');
 
@@ -106,7 +106,7 @@ describe('CommandValidator', function () {
         });
 
         it('handles single-quoted strings', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator->parseCommand("echo 'hello world'");
 
@@ -115,7 +115,7 @@ describe('CommandValidator', function () {
         });
 
         it('handles empty commands', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator->parseCommand('');
 
@@ -125,7 +125,7 @@ describe('CommandValidator', function () {
         });
 
         it('trims whitespace', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator->parseCommand('  ls   -la  ');
 
@@ -273,7 +273,7 @@ describe('CommandValidator', function () {
             );
             $validator->setMaxLength(10);
 
-            expect(fn () => $validator->validate('echo ' . str_repeat('a', 100)))
+            expect(fn () => $validator->validate('echo '.str_repeat('a', 100)))
                 ->toThrow(ValidationException::class, 'exceeds maximum length');
         });
 
@@ -290,7 +290,7 @@ describe('CommandValidator', function () {
 
     describe('configuration', function () {
         it('can add allowed commands fluently', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator
                 ->addAllowedCommand('ls')
@@ -336,7 +336,7 @@ describe('CommandValidator', function () {
         });
 
         it('can set and get blocked characters', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $validator->setBlockedCharacters([';', '|']);
             $validator->addBlockedCharacter('&');
@@ -345,7 +345,7 @@ describe('CommandValidator', function () {
         });
 
         it('can set and get max length', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $validator->setMaxLength(500);
 
@@ -353,7 +353,7 @@ describe('CommandValidator', function () {
         });
 
         it('enforces minimum max length of 1', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $validator->setMaxLength(0);
 
@@ -380,7 +380,7 @@ describe('CommandValidator', function () {
         });
 
         it('ignores empty strings when adding commands', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $validator->addAllowedCommand('');
             $validator->addAllowedCommand('  ');
@@ -516,7 +516,7 @@ describe('CommandValidator', function () {
         });
 
         it('setAllowAll returns fluent interface', function () {
-            $validator = new CommandValidator();
+            $validator = new CommandValidator;
 
             $result = $validator->setAllowAll(true);
 

@@ -10,7 +10,7 @@ use MWGuerra\WebTerminal\Security\SensitiveValue;
 describe('CredentialManager', function () {
     describe('encryption', function () {
         it('encrypts and decrypts values', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $encrypted = $manager->encrypt('my-secret');
 
@@ -22,7 +22,7 @@ describe('CredentialManager', function () {
         });
 
         it('produces different encrypted values each time', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $encrypted1 = $manager->encrypt('same-value');
             $encrypted2 = $manager->encrypt('same-value');
@@ -33,7 +33,7 @@ describe('CredentialManager', function () {
 
     describe('wrap', function () {
         it('wraps values in SensitiveValue', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $wrapped = $manager->wrap('secret');
 
@@ -42,7 +42,7 @@ describe('CredentialManager', function () {
         });
 
         it('wraps encrypted values', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $encrypted = $manager->encrypt('secret');
             $wrapped = $manager->wrapEncrypted($encrypted);
@@ -54,7 +54,7 @@ describe('CredentialManager', function () {
 
     describe('sensitive field detection', function () {
         it('detects known sensitive field names', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             expect($manager->isSensitiveField('password'))->toBeTrue();
             expect($manager->isSensitiveField('private_key'))->toBeTrue();
@@ -67,7 +67,7 @@ describe('CredentialManager', function () {
         });
 
         it('detects sensitive patterns', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             expect($manager->isSensitiveField('user_password'))->toBeTrue();
             expect($manager->isSensitiveField('db_secret'))->toBeTrue();
@@ -77,7 +77,7 @@ describe('CredentialManager', function () {
         });
 
         it('identifies non-sensitive fields', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             expect($manager->isSensitiveField('username'))->toBeFalse();
             expect($manager->isSensitiveField('host'))->toBeFalse();
@@ -88,7 +88,7 @@ describe('CredentialManager', function () {
 
     describe('redact', function () {
         it('redacts sensitive fields from array', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $data = [
                 'username' => 'admin',
@@ -106,7 +106,7 @@ describe('CredentialManager', function () {
         });
 
         it('handles nested arrays', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $data = [
                 'connection' => [
@@ -128,7 +128,7 @@ describe('CredentialManager', function () {
 
     describe('sanitizeConfig', function () {
         it('returns safe config for frontend', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $config = ConnectionConfig::sshWithPassword(
                 host: 'example.com',
@@ -149,7 +149,7 @@ describe('CredentialManager', function () {
         });
 
         it('indicates key authentication', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $config = ConnectionConfig::sshWithKey(
                 host: 'example.com',
@@ -228,7 +228,7 @@ describe('CredentialManager', function () {
         });
 
         it('leaves non-encrypted fields unchanged', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $stored = [
                 'username' => 'admin',
@@ -266,7 +266,7 @@ describe('CredentialManager', function () {
 
     describe('detectSensitiveData', function () {
         it('detects sensitive fields in data', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $data = [
                 'username' => 'admin',
@@ -282,7 +282,7 @@ describe('CredentialManager', function () {
         });
 
         it('detects nested sensitive fields', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $data = [
                 'connection' => [
@@ -299,7 +299,7 @@ describe('CredentialManager', function () {
 
     describe('mask', function () {
         it('masks the middle of a credential', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $masked = $manager->mask('secretpassword123');
 
@@ -310,7 +310,7 @@ describe('CredentialManager', function () {
         });
 
         it('fully masks short values', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $masked = $manager->mask('short', 3);
 
@@ -318,7 +318,7 @@ describe('CredentialManager', function () {
         });
 
         it('respects showChars parameter', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $masked = $manager->mask('password123456', 2);
 
@@ -329,13 +329,13 @@ describe('CredentialManager', function () {
 
     describe('secureCompare', function () {
         it('compares equal values', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             expect($manager->secureCompare('secret', 'secret'))->toBeTrue();
         });
 
         it('compares different values', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             expect($manager->secureCompare('secret', 'other'))->toBeFalse();
         });
@@ -343,7 +343,7 @@ describe('CredentialManager', function () {
 
     describe('generateSecureToken', function () {
         it('generates tokens of specified length', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $token = $manager->generateSecureToken(32);
 
@@ -351,7 +351,7 @@ describe('CredentialManager', function () {
         });
 
         it('generates unique tokens', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $token1 = $manager->generateSecureToken();
             $token2 = $manager->generateSecureToken();
@@ -360,7 +360,7 @@ describe('CredentialManager', function () {
         });
 
         it('generates hex characters only', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $token = $manager->generateSecureToken(64);
 
@@ -370,7 +370,7 @@ describe('CredentialManager', function () {
 
     describe('isValidSshKey', function () {
         it('validates OpenSSH keys', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $key = "-----BEGIN OPENSSH PRIVATE KEY-----\nbase64content\n-----END OPENSSH PRIVATE KEY-----";
 
@@ -378,7 +378,7 @@ describe('CredentialManager', function () {
         });
 
         it('validates RSA keys', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $key = "-----BEGIN RSA PRIVATE KEY-----\nbase64content\n-----END RSA PRIVATE KEY-----";
 
@@ -386,7 +386,7 @@ describe('CredentialManager', function () {
         });
 
         it('validates EC keys', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             $key = "-----BEGIN EC PRIVATE KEY-----\nbase64content\n-----END EC PRIVATE KEY-----";
 
@@ -394,7 +394,7 @@ describe('CredentialManager', function () {
         });
 
         it('rejects invalid key formats', function () {
-            $manager = new CredentialManager();
+            $manager = new CredentialManager;
 
             expect($manager->isValidSshKey('not-a-key'))->toBeFalse();
             expect($manager->isValidSshKey('-----BEGIN PUBLIC KEY-----'))->toBeFalse();

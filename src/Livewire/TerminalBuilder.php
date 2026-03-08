@@ -76,7 +76,6 @@ class TerminalBuilder
     /**
      * Set the connection configuration.
      *
-     * @param  ConnectionType|string  $type
      * @param  array<string, mixed>  $config
      * @return $this
      */

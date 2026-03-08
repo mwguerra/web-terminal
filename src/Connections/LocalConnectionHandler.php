@@ -51,7 +51,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     protected bool $preferTmux = true;
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function connect(ConnectionConfig $config): void
     {
@@ -66,7 +66,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function execute(string $command, ?float $timeout = null): CommandResult
     {
@@ -109,7 +109,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function disconnect(): void
     {
@@ -242,7 +242,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
         // These are required for .bashrc/.bash_profile to work correctly
         if ($this->useLoginShell) {
             if (! isset($env['HOME'])) {
-                $env['HOME'] = getenv('HOME') ?: ($_SERVER['HOME'] ?? '/home/' . get_current_user());
+                $env['HOME'] = getenv('HOME') ?: ($_SERVER['HOME'] ?? '/home/'.get_current_user());
             }
             if (! isset($env['USER'])) {
                 $env['USER'] = getenv('USER') ?: ($_SERVER['USER'] ?? get_current_user());
@@ -265,7 +265,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
      * most .bashrc files have an interactive shell check that exits early.
      *
      * @param  string  $command  The original command
-     * @return string  The wrapped command
+     * @return string The wrapped command
      */
     protected function wrapCommand(string $command): string
     {
@@ -335,7 +335,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
         $scripts[] = '[ -d "$HOME/.config/composer/vendor/bin" ] && export PATH="$HOME/.config/composer/vendor/bin:$PATH"';
         $scripts[] = '[ -d "$HOME/.composer/vendor/bin" ] && export PATH="$HOME/.composer/vendor/bin:$PATH"';
 
-        return implode('; ', $scripts) . ';';
+        return implode('; ', $scripts).';';
     }
 
     // ========================================
@@ -343,7 +343,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     // ========================================
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function supportsInteractive(): bool
     {
@@ -351,7 +351,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function startInteractive(string $command): string
     {
@@ -371,7 +371,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function readOutput(string $sessionId): ?array
     {
@@ -379,7 +379,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function writeInput(string $sessionId, string $input): bool
     {
@@ -393,7 +393,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
      *
      * @param  string  $sessionId  The session ID
      * @param  string  $input  The raw input to send
-     * @return bool  True if input was sent
+     * @return bool True if input was sent
      */
     public function writeRawInput(string $sessionId, string $input): bool
     {
@@ -401,7 +401,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function isProcessRunning(string $sessionId): bool
     {
@@ -409,7 +409,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getProcessExitCode(string $sessionId): ?int
     {
@@ -417,7 +417,7 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function terminateProcess(string $sessionId): bool
     {
@@ -439,9 +439,9 @@ class LocalConnectionHandler extends AbstractConnectionHandler
         if ($this->sessionManager === null) {
             // Use tmux if available and preferred
             if ($this->preferTmux && TmuxSessionManager::isAvailable()) {
-                $this->sessionManager = new TmuxSessionManager();
+                $this->sessionManager = new TmuxSessionManager;
             } else {
-                $this->sessionManager = new ProcessSessionManager();
+                $this->sessionManager = new ProcessSessionManager;
             }
         }
 

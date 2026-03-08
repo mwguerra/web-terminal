@@ -10,7 +10,7 @@ use MWGuerra\WebTerminal\Exceptions\ConnectionException;
 
 describe('SSHConnectionHandler', function () {
     beforeEach(function () {
-        $this->handler = new SSHConnectionHandler();
+        $this->handler = new SSHConnectionHandler;
     });
 
     it('implements ConnectionHandlerInterface', function () {
@@ -200,7 +200,8 @@ describe('SSHConnectionHandler', function () {
 
 describe('SSHConnectionHandler buildCommandWithEnvironment', function () {
     it('returns command unchanged when no environment variables', function () {
-        $handler = new class extends SSHConnectionHandler {
+        $handler = new class extends SSHConnectionHandler
+        {
             public function exposeBuildCommandWithEnvironment(string $command): string
             {
                 return $this->buildCommandWithEnvironment($command);
@@ -213,7 +214,8 @@ describe('SSHConnectionHandler buildCommandWithEnvironment', function () {
     });
 
     it('prepends environment exports to command', function () {
-        $handler = new class extends SSHConnectionHandler {
+        $handler = new class extends SSHConnectionHandler
+        {
             public function exposeBuildCommandWithEnvironment(string $command): string
             {
                 return $this->buildCommandWithEnvironment($command);
@@ -231,7 +233,8 @@ describe('SSHConnectionHandler buildCommandWithEnvironment', function () {
     });
 
     it('handles multiple environment variables', function () {
-        $handler = new class extends SSHConnectionHandler {
+        $handler = new class extends SSHConnectionHandler
+        {
             public function exposeBuildCommandWithEnvironment(string $command): string
             {
                 return $this->buildCommandWithEnvironment($command);
@@ -253,7 +256,8 @@ describe('SSHConnectionHandler buildCommandWithEnvironment', function () {
 
 describe('SSHConnectionHandler isConnectionError', function () {
     it('detects connection errors', function () {
-        $handler = new class extends SSHConnectionHandler {
+        $handler = new class extends SSHConnectionHandler
+        {
             public function exposeIsConnectionError(\Throwable $e): bool
             {
                 return $this->isConnectionError($e);

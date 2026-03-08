@@ -106,7 +106,7 @@ class AnsiToHtml
      * Convert ANSI escape sequences in text to HTML.
      *
      * @param  string  $text  Text containing ANSI escape sequences
-     * @return string  HTML with CSS classes for styling
+     * @return string HTML with CSS classes for styling
      */
     public function convert(string $text): string
     {
@@ -138,7 +138,7 @@ class AnsiToHtml
                     } else {
                         $classes = $this->getClasses();
                         if ($classes !== '') {
-                            $result .= '<span class="' . $classes . '">' . $escapedText;
+                            $result .= '<span class="'.$classes.'">'.$escapedText;
                             $isSpanOpen = true;
                         } else {
                             $result .= $escapedText;
@@ -166,9 +166,9 @@ class AnsiToHtml
             $escapedText = htmlspecialchars($remainingText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $classes = $this->getClasses();
             if ($classes !== '' && ! $isSpanOpen) {
-                $result .= '<span class="' . $classes . '">' . $escapedText . '</span>';
+                $result .= '<span class="'.$classes.'">'.$escapedText.'</span>';
             } elseif ($isSpanOpen) {
-                $result .= $escapedText . '</span>';
+                $result .= $escapedText.'</span>';
             } else {
                 $result .= $escapedText;
             }
@@ -340,7 +340,7 @@ class AnsiToHtml
      * @param  int[]  $codes  Array of all codes
      * @param  int  $currentIndex  Current position in codes array
      * @param  string  $type  'fg' or 'bg'
-     * @return int  New position in codes array
+     * @return int New position in codes array
      */
     protected function parseExtendedColor(array $codes, int $currentIndex, string $type): int
     {
@@ -379,7 +379,7 @@ class AnsiToHtml
      *
      * @param  int  $index  Color index (0-255)
      * @param  string  $type  'fg' or 'bg'
-     * @return string  Color class or RGB value
+     * @return string Color class or RGB value
      */
     protected function get256ColorClass(int $index, string $type): string
     {
@@ -424,7 +424,7 @@ class AnsiToHtml
     /**
      * Get CSS classes for current state.
      *
-     * @return string  Space-separated CSS classes
+     * @return string Space-separated CSS classes
      */
     protected function getClasses(): string
     {
@@ -434,45 +434,45 @@ class AnsiToHtml
         if ($this->state['fg'] !== null) {
             if (str_starts_with($this->state['fg'], 'rgb(')) {
                 // For RGB colors, we'll need inline styles (handled separately)
-                $classes[] = $this->classPrefix . 'fg-custom';
+                $classes[] = $this->classPrefix.'fg-custom';
             } else {
-                $classes[] = $this->classPrefix . 'fg-' . $this->state['fg'];
+                $classes[] = $this->classPrefix.'fg-'.$this->state['fg'];
             }
         }
 
         // Background color
         if ($this->state['bg'] !== null) {
             if (str_starts_with($this->state['bg'], 'rgb(')) {
-                $classes[] = $this->classPrefix . 'bg-custom';
+                $classes[] = $this->classPrefix.'bg-custom';
             } else {
-                $classes[] = $this->classPrefix . 'bg-' . $this->state['bg'];
+                $classes[] = $this->classPrefix.'bg-'.$this->state['bg'];
             }
         }
 
         // Text attributes
         if ($this->state['bold']) {
-            $classes[] = $this->classPrefix . 'bold';
+            $classes[] = $this->classPrefix.'bold';
         }
         if ($this->state['dim']) {
-            $classes[] = $this->classPrefix . 'dim';
+            $classes[] = $this->classPrefix.'dim';
         }
         if ($this->state['italic']) {
-            $classes[] = $this->classPrefix . 'italic';
+            $classes[] = $this->classPrefix.'italic';
         }
         if ($this->state['underline']) {
-            $classes[] = $this->classPrefix . 'underline';
+            $classes[] = $this->classPrefix.'underline';
         }
         if ($this->state['blink']) {
-            $classes[] = $this->classPrefix . 'blink';
+            $classes[] = $this->classPrefix.'blink';
         }
         if ($this->state['reverse']) {
-            $classes[] = $this->classPrefix . 'reverse';
+            $classes[] = $this->classPrefix.'reverse';
         }
         if ($this->state['hidden']) {
-            $classes[] = $this->classPrefix . 'hidden';
+            $classes[] = $this->classPrefix.'hidden';
         }
         if ($this->state['strikethrough']) {
-            $classes[] = $this->classPrefix . 'strikethrough';
+            $classes[] = $this->classPrefix.'strikethrough';
         }
 
         return implode(' ', $classes);
@@ -522,7 +522,7 @@ class AnsiToHtml
      * Strip all ANSI escape sequences from text.
      *
      * @param  string  $text  Text containing ANSI escape sequences
-     * @return string  Plain text without escape sequences
+     * @return string Plain text without escape sequences
      */
     public static function strip(string $text): string
     {

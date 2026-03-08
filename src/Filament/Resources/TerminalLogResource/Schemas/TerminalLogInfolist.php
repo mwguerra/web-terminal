@@ -109,7 +109,6 @@ class TerminalLogInfolist
                                     ]),
                             ]),
 
-
                         Section::make(__('web-terminal::terminal.infolist.ssh_connection_details'))
                             ->icon('heroicon-o-server')
                             ->visible(fn ($record): bool => $record->connection_type === TerminalLog::CONNECTION_SSH)
@@ -184,8 +183,8 @@ class TerminalLogInfolist
                                     ->keyLabel(__('web-terminal::terminal.infolist.metadata_key'))
                                     ->valueLabel(__('web-terminal::terminal.infolist.metadata_value')),
                             ]),
-                    ])
-                ])
+                    ]),
+                ]),
             ]);
     }
 }

@@ -11,7 +11,7 @@ use MWGuerra\WebTerminal\Exceptions\ConnectionException;
 
 describe('LocalConnectionHandler', function () {
     beforeEach(function () {
-        $this->handler = new LocalConnectionHandler();
+        $this->handler = new LocalConnectionHandler;
     });
 
     it('implements ConnectionHandlerInterface', function () {
@@ -67,7 +67,7 @@ describe('LocalConnectionHandler', function () {
         });
 
         it('throws when not connected', function () {
-            $disconnectedHandler = new LocalConnectionHandler();
+            $disconnectedHandler = new LocalConnectionHandler;
 
             expect(fn () => $disconnectedHandler->execute('ls'))
                 ->toThrow(ConnectionException::class, 'Not connected');
@@ -284,7 +284,7 @@ describe('LocalConnectionHandler', function () {
         });
 
         it('throws when starting interactive without connection', function () {
-            $disconnectedHandler = new LocalConnectionHandler();
+            $disconnectedHandler = new LocalConnectionHandler;
 
             expect(fn () => $disconnectedHandler->startInteractive('echo "test"'))
                 ->toThrow(ConnectionException::class, 'Not connected');

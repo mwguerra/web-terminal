@@ -6,7 +6,7 @@ use MWGuerra\WebTerminal\Attributes\ValidPath;
 
 describe('ValidPath', function () {
     it('validates absolute paths', function () {
-        $validator = new ValidPath();
+        $validator = new ValidPath;
 
         expect($validator->validate('/home/user/file.txt'))->toBeTrue();
         expect($validator->validate('/var/log/app.log'))->toBeTrue();
@@ -14,14 +14,14 @@ describe('ValidPath', function () {
     });
 
     it('validates Windows absolute paths', function () {
-        $validator = new ValidPath();
+        $validator = new ValidPath;
 
         expect($validator->validate('C:\\Users\\User\\file.txt'))->toBeTrue();
         expect($validator->validate('D:/Projects/code'))->toBeTrue();
     });
 
     it('rejects relative paths by default', function () {
-        $validator = new ValidPath();
+        $validator = new ValidPath;
 
         expect($validator->validate('relative/path'))->toBeFalse();
         expect($validator->validate('./current/path'))->toBeFalse();
@@ -51,20 +51,20 @@ describe('ValidPath', function () {
     });
 
     it('blocks null bytes', function () {
-        $validator = new ValidPath();
+        $validator = new ValidPath;
 
         expect($validator->validate("/home/user\0/file"))->toBeFalse();
     });
 
     it('blocks control characters', function () {
-        $validator = new ValidPath();
+        $validator = new ValidPath;
 
         expect($validator->validate("/home/user\n/file"))->toBeFalse();
         expect($validator->validate("/home/user\r/file"))->toBeFalse();
     });
 
     it('rejects empty values', function () {
-        $validator = new ValidPath();
+        $validator = new ValidPath;
 
         expect($validator->validate(''))->toBeFalse();
         expect($validator->validate(null))->toBeFalse();

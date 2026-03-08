@@ -37,7 +37,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     protected ?string $workingDirectory = null;
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function isConnected(): bool
     {
@@ -45,7 +45,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getConfig(): ?ConnectionConfig
     {
@@ -53,7 +53,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getTimeout(): float
     {
@@ -61,7 +61,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function setTimeout(float $timeout): static
     {
@@ -71,7 +71,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function getWorkingDirectory(): ?string
     {
@@ -79,7 +79,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function setWorkingDirectory(?string $directory): static
     {
@@ -121,7 +121,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     // ========================================
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * Default implementation returns false. Override in subclasses
      * that support interactive mode.
@@ -132,7 +132,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * Default implementation throws exception. Override in subclasses
      * that support interactive mode.
@@ -147,7 +147,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * Default implementation returns null. Override in subclasses
      * that support interactive mode.
@@ -158,7 +158,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * Default implementation returns false. Override in subclasses
      * that support interactive mode.
@@ -169,7 +169,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * Default implementation returns false. Override in subclasses
      * that support interactive mode.
@@ -180,7 +180,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * Default implementation returns null. Override in subclasses
      * that support interactive mode.
@@ -191,7 +191,7 @@ abstract class AbstractConnectionHandler implements ConnectionHandlerInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * Default implementation returns false. Override in subclasses
      * that support interactive mode.

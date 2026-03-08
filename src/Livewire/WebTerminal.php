@@ -1560,8 +1560,10 @@ class WebTerminal extends Component
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
                 if ($isFullScreen && $hasContent) {
-                    // Full screen mode: replace output from session start
-                    $this->replaceInteractiveOutput($output);
+                    // TUI detected — kill process and show error
+                    $this->handleTuiDetected($handler);
+
+                    return;
                 } else {
                     // Incremental mode: append output
                     $this->appendInteractiveOutput($output);
@@ -1789,8 +1791,10 @@ class WebTerminal extends Component
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
                 if ($isFullScreen && $hasContent) {
-                    // Full screen mode: replace output from session start
-                    $this->replaceInteractiveOutput($output);
+                    // TUI detected — kill process and show error
+                    $this->handleTuiDetected($handler);
+
+                    return;
                 } else {
                     // Incremental mode: append output
                     $this->appendInteractiveOutput($output);
@@ -1833,6 +1837,39 @@ class WebTerminal extends Component
         $this->resetInteractiveState();
 
         // Dispatch Livewire event to stop polling
+        $this->dispatch('terminal-interactive-finished');
+    }
+
+    /**
+     * Handle detection of a TUI application in interactive mode.
+     *
+     * Kills the process, shows an error message with suggestions, and resets state.
+     */
+    protected function handleTuiDetected(ConnectionHandlerInterface $handler): void
+    {
+        $command = $this->interactiveCommand;
+
+        // Kill the process
+        try {
+            $handler->terminateProcess($this->activeSessionId);
+        } catch (\Throwable) {
+            // Best-effort termination
+        }
+
+        // Clear any partial output from the TUI app
+        if ($this->interactiveOutputStart > 0) {
+            $this->output = array_slice($this->output, 0, $this->interactiveOutputStart);
+        }
+
+        // Show error message with suggestion
+        $this->addOutput(TerminalOutput::error(
+            TuiDetector::getErrorMessage($command)
+        ));
+
+        // Reset interactive state
+        $this->resetInteractiveState();
+
+        // Dispatch event to stop polling
         $this->dispatch('terminal-interactive-finished');
     }
 
@@ -2378,7 +2415,10 @@ class WebTerminal extends Component
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
                 if ($isFullScreen && $hasContent) {
-                    $this->replaceInteractiveOutput($output);
+                    // TUI detected — kill process and show error
+                    $this->handleTuiDetected($handler);
+
+                    return;
                 } else {
                     $this->appendInteractiveOutput($output);
                 }

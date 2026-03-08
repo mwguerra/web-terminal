@@ -113,14 +113,14 @@ describe('TerminalLogger', function () {
 
     describe('generateSessionId', function () {
         it('generates a valid UUID', function () {
-            $logger = new TerminalLogger();
+            $logger = new TerminalLogger;
             $sessionId = $logger->generateSessionId();
 
             expect($sessionId)->toMatch('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i');
         });
 
         it('generates unique session IDs', function () {
-            $logger = new TerminalLogger();
+            $logger = new TerminalLogger;
 
             $ids = [];
             for ($i = 0; $i < 10; $i++) {
@@ -133,7 +133,7 @@ describe('TerminalLogger', function () {
 
     describe('getSessionSummary', function () {
         it('returns empty summary for non-existent session', function () {
-            $logger = new TerminalLogger();
+            $logger = new TerminalLogger;
             $summary = $logger->getSessionSummary('non-existent-session');
 
             expect($summary['command_count'])->toBe(0);

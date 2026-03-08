@@ -5,13 +5,12 @@ declare(strict_types=1);
 use MWGuerra\WebTerminal\Connections\ConnectionHandlerFactory;
 use MWGuerra\WebTerminal\Connections\LocalConnectionHandler;
 use MWGuerra\WebTerminal\Connections\SSHConnectionHandler;
-use MWGuerra\WebTerminal\Contracts\ConnectionHandlerInterface;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Enums\ConnectionType;
 
 describe('ConnectionHandlerFactory', function () {
     beforeEach(function () {
-        $this->factory = new ConnectionHandlerFactory();
+        $this->factory = new ConnectionHandlerFactory;
     });
 
     describe('createHandler', function () {

@@ -24,7 +24,7 @@ class WebTerminalServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/web-terminal.php',
+            __DIR__.'/../config/web-terminal.php',
             'web-terminal'
         );
 
@@ -49,7 +49,7 @@ class WebTerminalServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(ConnectionHandlerFactory::class, function ($app) {
-            return new ConnectionHandlerFactory();
+            return new ConnectionHandlerFactory;
         });
 
         $this->app->singleton(TerminalLogger::class, function ($app) {
@@ -59,8 +59,8 @@ class WebTerminalServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'web-terminal');
-        $this->loadTranslationsFrom(__DIR__ . '/../lang', 'web-terminal');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'web-terminal');
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'web-terminal');
         $this->registerAssets();
 
         Livewire::component('web-terminal', WebTerminal::class);
@@ -73,15 +73,15 @@ class WebTerminalServiceProvider extends ServiceProvider
             ]);
 
             $this->publishes([
-                __DIR__ . '/../config/web-terminal.php' => config_path('web-terminal.php'),
+                __DIR__.'/../config/web-terminal.php' => config_path('web-terminal.php'),
             ], 'web-terminal-config');
 
             $this->publishes([
-                __DIR__ . '/../resources/views' => resource_path('views/vendor/web-terminal'),
+                __DIR__.'/../resources/views' => resource_path('views/vendor/web-terminal'),
             ], 'web-terminal-views');
 
             $this->publishes([
-                __DIR__ . '/../lang' => $this->app->langPath('vendor/web-terminal'),
+                __DIR__.'/../lang' => $this->app->langPath('vendor/web-terminal'),
             ], 'web-terminal-lang');
         }
     }
@@ -91,7 +91,7 @@ class WebTerminalServiceProvider extends ServiceProvider
         // Only register assets when Filament is installed
         if (class_exists(FilamentAsset::class)) {
             FilamentAsset::register([
-                Css::make('web-terminal', __DIR__ . '/../resources/dist/web-terminal.css'),
+                Css::make('web-terminal', __DIR__.'/../resources/dist/web-terminal.css'),
             ], 'mwguerra/web-terminal');
         }
     }

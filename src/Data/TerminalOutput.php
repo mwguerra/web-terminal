@@ -23,7 +23,7 @@ readonly class TerminalOutput
     public function __construct(
         public OutputType $type,
         public string $content,
-        public DateTimeImmutable $timestamp = new DateTimeImmutable(),
+        public DateTimeImmutable $timestamp = new DateTimeImmutable,
     ) {}
 
     /**

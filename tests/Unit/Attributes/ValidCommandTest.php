@@ -6,7 +6,7 @@ use MWGuerra\WebTerminal\Attributes\ValidCommand;
 
 describe('ValidCommand', function () {
     it('validates simple commands', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate('ls'))->toBeTrue();
         expect($validator->validate('pwd'))->toBeTrue();
@@ -16,7 +16,7 @@ describe('ValidCommand', function () {
     });
 
     it('blocks command separators', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate('ls; rm -rf /'))->toBeFalse();
         expect($validator->validate('ls && rm -rf /'))->toBeFalse();
@@ -24,7 +24,7 @@ describe('ValidCommand', function () {
     });
 
     it('blocks pipes by default', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate('ls | grep txt'))->toBeFalse();
     });
@@ -36,7 +36,7 @@ describe('ValidCommand', function () {
     });
 
     it('blocks redirection by default', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate('echo test > file.txt'))->toBeFalse();
         expect($validator->validate('cat < input.txt'))->toBeFalse();
@@ -51,7 +51,7 @@ describe('ValidCommand', function () {
     });
 
     it('blocks chaining by default', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate('ls; rm -rf /'))->toBeFalse();
         expect($validator->validate('sleep 100 &'))->toBeFalse();
@@ -77,7 +77,7 @@ describe('ValidCommand', function () {
     });
 
     it('blocks expansion by default', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate('echo $(whoami)'))->toBeFalse();
         expect($validator->validate('echo `whoami`'))->toBeFalse();
@@ -100,14 +100,14 @@ describe('ValidCommand', function () {
     });
 
     it('blocks newlines', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate("ls\nrm -rf /"))->toBeFalse();
         expect($validator->validate("ls\rrm -rf /"))->toBeFalse();
     });
 
     it('blocks null bytes', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate("ls\0rm"))->toBeFalse();
     });
@@ -120,7 +120,7 @@ describe('ValidCommand', function () {
     });
 
     it('rejects empty commands', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
 
         expect($validator->validate(''))->toBeFalse();
         expect($validator->validate(null))->toBeFalse();
@@ -133,7 +133,7 @@ describe('ValidCommand', function () {
     });
 
     it('returns dangerous characters list', function () {
-        $validator = new ValidCommand();
+        $validator = new ValidCommand;
         $chars = $validator->getDangerousCharacters();
 
         expect($chars)->toBeArray();

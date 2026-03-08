@@ -42,7 +42,7 @@ class SSHConnectionHandler extends AbstractConnectionHandler
     protected float $reconnectDelay = 1.0;
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function connect(ConnectionConfig $config): void
     {
@@ -85,7 +85,7 @@ class SSHConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function execute(string $command, ?float $timeout = null): CommandResult
     {
@@ -101,7 +101,7 @@ class SSHConnectionHandler extends AbstractConnectionHandler
 
         // Set working directory if specified
         if ($this->workingDirectory !== null) {
-            $fullCommand = "cd " . escapeshellarg($this->workingDirectory) . " && " . $fullCommand;
+            $fullCommand = 'cd '.escapeshellarg($this->workingDirectory).' && '.$fullCommand;
         }
 
         try {
@@ -153,7 +153,7 @@ class SSHConnectionHandler extends AbstractConnectionHandler
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function disconnect(): void
     {
@@ -374,7 +374,7 @@ class SSHConnectionHandler extends AbstractConnectionHandler
         // Build the base command with environment
         $fullCommand = $command;
         if (! empty($exports)) {
-            $fullCommand = implode('; ', $exports) . '; ' . $command;
+            $fullCommand = implode('; ', $exports).'; '.$command;
         }
 
         // Wrap with script for PTY emulation if enabled (for color support)

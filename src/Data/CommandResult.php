@@ -28,7 +28,7 @@ readonly class CommandResult
         public int $exitCode,
         public float $executionTime,
         public string $command = '',
-        public DateTimeImmutable $executedAt = new DateTimeImmutable(),
+        public DateTimeImmutable $executedAt = new DateTimeImmutable,
     ) {}
 
     /**
@@ -121,7 +121,7 @@ readonly class CommandResult
             return $this->stderr;
         }
 
-        return $this->stdout . "\n" . $this->stderr;
+        return $this->stdout."\n".$this->stderr;
     }
 
     /**
@@ -190,10 +190,10 @@ readonly class CommandResult
     public function formattedExecutionTime(): string
     {
         if ($this->executionTime < 1) {
-            return round($this->executionTime * 1000) . 'ms';
+            return round($this->executionTime * 1000).'ms';
         }
 
-        return round($this->executionTime, 2) . 's';
+        return round($this->executionTime, 2).'s';
     }
 
     /**

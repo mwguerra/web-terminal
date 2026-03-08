@@ -103,7 +103,6 @@ encrypted-key
     });
 });
 
-
 describe('local', function () {
     it('configures local connection', function () {
         $component = WebTerminal::make()

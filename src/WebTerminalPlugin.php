@@ -49,9 +49,13 @@ class WebTerminalPlugin implements Plugin
     // =========================================================================
 
     protected bool $terminalPageEnabled = true;
+
     protected ?string $terminalNavigationIcon = null;
+
     protected ?string $terminalNavigationLabel = null;
+
     protected ?int $terminalNavigationSort = null;
+
     protected ?string $terminalNavigationGroup = null;
 
     // =========================================================================
@@ -59,9 +63,13 @@ class WebTerminalPlugin implements Plugin
     // =========================================================================
 
     protected bool $terminalLogsEnabled = true;
+
     protected ?string $terminalLogsNavigationIcon = null;
+
     protected ?string $terminalLogsNavigationLabel = null;
+
     protected ?int $terminalLogsNavigationSort = null;
+
     protected ?string $terminalLogsNavigationGroup = null;
 
     // =========================================================================
@@ -129,7 +137,6 @@ class WebTerminalPlugin implements Plugin
      * @example
      * // Register all enabled components
      * WebTerminalPlugin::make()
-     *
      * @example
      * // Register only specific components
      * WebTerminalPlugin::make([

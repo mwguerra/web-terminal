@@ -122,7 +122,7 @@ class TmuxSessionManager implements SessionManagerInterface
      * @param  string|null  $cwd  Working directory
      * @param  array<string, string>|null  $env  Environment variables
      * @param  float|null  $timeout  Timeout in seconds (ignored for tmux sessions)
-     * @return string  The session ID
+     * @return string The session ID
      */
     public function start(
         string $command,
@@ -131,7 +131,7 @@ class TmuxSessionManager implements SessionManagerInterface
         ?float $timeout = null,
     ): string {
         $sessionId = $this->generateSessionId();
-        $tmuxSession = self::SESSION_PREFIX . $sessionId;
+        $tmuxSession = self::SESSION_PREFIX.$sessionId;
 
         // Build the tmux command
         $tmuxCommand = $this->buildTmuxStartCommand($tmuxSession, $command, $cwd, $env);
@@ -140,7 +140,7 @@ class TmuxSessionManager implements SessionManagerInterface
         $result = $this->executeCommand($tmuxCommand);
 
         if ($result['exit_code'] !== 0) {
-            throw new \RuntimeException('Failed to start tmux session: ' . $result['stderr']);
+            throw new \RuntimeException('Failed to start tmux session: '.$result['stderr']);
         }
 
         // Get the PID of the process inside tmux
@@ -168,7 +168,7 @@ class TmuxSessionManager implements SessionManagerInterface
      * The 'full_screen' flag indicates the output should replace previous content.
      *
      * @param  string  $sessionId  The session ID
-     * @return array{stdout: string, stderr: string, full_screen?: bool}|null  Output or null if session not found
+     * @return array{stdout: string, stderr: string, full_screen?: bool}|null Output or null if session not found
      */
     public function getOutput(string $sessionId): ?array
     {
@@ -178,7 +178,7 @@ class TmuxSessionManager implements SessionManagerInterface
             return null;
         }
 
-        $tmuxSession = self::SESSION_PREFIX . $sessionId;
+        $tmuxSession = self::SESSION_PREFIX.$sessionId;
 
         // Check if session still exists
         if (! $this->tmuxSessionExists($tmuxSession)) {
@@ -219,7 +219,7 @@ class TmuxSessionManager implements SessionManagerInterface
      *
      * @param  string  $sessionId  The session ID
      * @param  string  $input  The input to send (newline appended automatically)
-     * @return bool  True if input was sent
+     * @return bool True if input was sent
      */
     public function sendInput(string $sessionId, string $input): bool
     {
@@ -229,7 +229,7 @@ class TmuxSessionManager implements SessionManagerInterface
             return false;
         }
 
-        $tmuxSession = self::SESSION_PREFIX . $sessionId;
+        $tmuxSession = self::SESSION_PREFIX.$sessionId;
 
         if (! $this->tmuxSessionExists($tmuxSession)) {
             return false;
@@ -261,7 +261,7 @@ class TmuxSessionManager implements SessionManagerInterface
      *
      * @param  string  $sessionId  The session ID
      * @param  string  $input  The raw input to send
-     * @return bool  True if input was sent
+     * @return bool True if input was sent
      */
     public function sendRawInput(string $sessionId, string $input): bool
     {
@@ -271,7 +271,7 @@ class TmuxSessionManager implements SessionManagerInterface
             return false;
         }
 
-        $tmuxSession = self::SESSION_PREFIX . $sessionId;
+        $tmuxSession = self::SESSION_PREFIX.$sessionId;
 
         if (! $this->tmuxSessionExists($tmuxSession)) {
             return false;
@@ -302,7 +302,7 @@ class TmuxSessionManager implements SessionManagerInterface
      * Check if a process is still running.
      *
      * @param  string  $sessionId  The session ID
-     * @return bool  True if running
+     * @return bool True if running
      */
     public function isRunning(string $sessionId): bool
     {
@@ -312,7 +312,7 @@ class TmuxSessionManager implements SessionManagerInterface
             return false;
         }
 
-        $tmuxSession = self::SESSION_PREFIX . $sessionId;
+        $tmuxSession = self::SESSION_PREFIX.$sessionId;
 
         if (! $this->tmuxSessionExists($tmuxSession)) {
             // Update cache to mark as finished
@@ -355,7 +355,7 @@ class TmuxSessionManager implements SessionManagerInterface
      * Get the exit code of a finished process.
      *
      * @param  string  $sessionId  The session ID
-     * @return int|null  Exit code or null if still running/not found
+     * @return int|null Exit code or null if still running/not found
      */
     public function getExitCode(string $sessionId): ?int
     {
@@ -372,12 +372,12 @@ class TmuxSessionManager implements SessionManagerInterface
      * Terminate a running process.
      *
      * @param  string  $sessionId  The session ID
-     * @return bool  True if terminated
+     * @return bool True if terminated
      */
     public function terminate(string $sessionId): bool
     {
         $sessionData = $this->getSessionData($sessionId);
-        $tmuxSession = self::SESSION_PREFIX . $sessionId;
+        $tmuxSession = self::SESSION_PREFIX.$sessionId;
 
         // Kill tmux session if it exists
         if ($this->tmuxSessionExists($tmuxSession)) {
@@ -412,7 +412,7 @@ class TmuxSessionManager implements SessionManagerInterface
             return null;
         }
 
-        $tmuxSession = self::SESSION_PREFIX . $sessionId;
+        $tmuxSession = self::SESSION_PREFIX.$sessionId;
         $isRunning = $this->tmuxSessionExists($tmuxSession);
 
         return [
@@ -629,7 +629,7 @@ class TmuxSessionManager implements SessionManagerInterface
         "\e" => 'Escape',
         "\x1b" => 'Escape',
         "\x7f" => 'BSpace',  // Backspace
-        " " => 'Space',
+        ' ' => 'Space',
     ];
 
     /**
@@ -696,7 +696,7 @@ class TmuxSessionManager implements SessionManagerInterface
      */
     protected function getSessionData(string $sessionId): ?SharedSessionData
     {
-        $data = Cache::get(self::CACHE_PREFIX . $sessionId);
+        $data = Cache::get(self::CACHE_PREFIX.$sessionId);
 
         if ($data === null) {
             return null;
@@ -711,7 +711,7 @@ class TmuxSessionManager implements SessionManagerInterface
     protected function saveSessionData(SharedSessionData $sessionData): void
     {
         Cache::put(
-            self::CACHE_PREFIX . $sessionData->sessionId,
+            self::CACHE_PREFIX.$sessionData->sessionId,
             $sessionData->toArray(),
             $this->maxSessionLifetime
         );
@@ -722,7 +722,7 @@ class TmuxSessionManager implements SessionManagerInterface
      */
     protected function removeSessionData(string $sessionId): void
     {
-        Cache::forget(self::CACHE_PREFIX . $sessionId);
+        Cache::forget(self::CACHE_PREFIX.$sessionId);
     }
 
     /**

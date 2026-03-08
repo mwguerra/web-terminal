@@ -8,7 +8,7 @@ use MWGuerra\WebTerminal\Enums\ScriptCommandStatus;
 describe('ScriptExecution', function () {
     describe('start', function () {
         it('initializes execution state correctly', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('deploy', 'Deploy Application', [
                 'git pull',
                 'composer install',
@@ -27,7 +27,7 @@ describe('ScriptExecution', function () {
         });
 
         it('initializes all commands as pending', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2']);
 
             $commands = $execution->getCommands();
@@ -39,7 +39,7 @@ describe('ScriptExecution', function () {
 
     describe('command status updates', function () {
         it('marks current command as running', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2']);
             $execution->markCurrentAsRunning();
 
@@ -50,7 +50,7 @@ describe('ScriptExecution', function () {
         });
 
         it('marks current command as success', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsSuccess(0, 'output', 0.5);
@@ -65,7 +65,7 @@ describe('ScriptExecution', function () {
         });
 
         it('marks current command as failed', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsFailed(1, 'error', 0.3);
@@ -80,7 +80,7 @@ describe('ScriptExecution', function () {
         });
 
         it('marks remaining commands as skipped', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2', 'cmd3']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsFailed(1, 'error', 0.1);
@@ -96,7 +96,7 @@ describe('ScriptExecution', function () {
 
     describe('advancing through commands', function () {
         it('advances to next command', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2', 'cmd3']);
             $execution->advanceToNext();
 
@@ -105,7 +105,7 @@ describe('ScriptExecution', function () {
         });
 
         it('reports no more commands at end', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
             $execution->advanceToNext();
 
@@ -116,7 +116,7 @@ describe('ScriptExecution', function () {
 
     describe('progress tracking', function () {
         it('calculates progress percentage correctly', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2', 'cmd3', 'cmd4']);
 
             expect($execution->getProgressPercentage())->toBe(0);
@@ -134,14 +134,14 @@ describe('ScriptExecution', function () {
         });
 
         it('returns 100% for empty script', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', []);
 
             expect($execution->getProgressPercentage())->toBe(100);
         });
 
         it('counts completed commands correctly', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2', 'cmd3']);
 
             expect($execution->getCompletedCount())->toBe(0);
@@ -159,7 +159,7 @@ describe('ScriptExecution', function () {
         });
 
         it('counts success and failed correctly', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2', 'cmd3']);
 
             $execution->markCurrentAsRunning();
@@ -180,7 +180,7 @@ describe('ScriptExecution', function () {
 
     describe('pause and resume', function () {
         it('can pause execution', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
             $execution->pause();
 
@@ -189,7 +189,7 @@ describe('ScriptExecution', function () {
         });
 
         it('can resume execution', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
             $execution->pause();
             $execution->resume();
@@ -200,7 +200,7 @@ describe('ScriptExecution', function () {
 
     describe('cancel', function () {
         it('cancels execution correctly', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2', 'cmd3']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsSuccess(0, '', 0.1);
@@ -219,7 +219,7 @@ describe('ScriptExecution', function () {
 
     describe('finish', function () {
         it('finishes execution correctly', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsSuccess(0, '', 0.1);
@@ -232,7 +232,7 @@ describe('ScriptExecution', function () {
 
     describe('success/failure checks', function () {
         it('identifies successful execution', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsSuccess(0, '', 0.1);
@@ -246,7 +246,7 @@ describe('ScriptExecution', function () {
         });
 
         it('identifies failed execution', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsFailed(1, '', 0.1);
@@ -257,7 +257,7 @@ describe('ScriptExecution', function () {
         });
 
         it('running execution is not successful', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsSuccess(0, '', 0.1);
@@ -266,7 +266,7 @@ describe('ScriptExecution', function () {
         });
 
         it('cancelled execution is not successful', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
             $execution->cancel();
 
@@ -303,7 +303,7 @@ describe('ScriptExecution', function () {
 
     describe('toArray', function () {
         it('converts to array correctly', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('deploy', 'Deploy', ['cmd1', 'cmd2']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsSuccess(0, 'output', 0.5);
@@ -339,7 +339,7 @@ describe('ScriptExecution', function () {
         });
 
         it('roundtrips through fromArray', function () {
-            $original = new ScriptExecution();
+            $original = new ScriptExecution;
             $original->start('test', 'Test', ['cmd1', 'cmd2']);
             $original->markCurrentAsRunning();
             $original->markCurrentAsSuccess(0, 'output', 0.5);
@@ -356,7 +356,7 @@ describe('ScriptExecution', function () {
 
     describe('reset', function () {
         it('resets all state', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
             $execution->markCurrentAsRunning();
             $execution->markCurrentAsSuccess(0, '', 0.1);
@@ -372,13 +372,13 @@ describe('ScriptExecution', function () {
 
     describe('hasStarted', function () {
         it('returns false before start', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
 
             expect($execution->hasStarted())->toBeFalse();
         });
 
         it('returns true after start', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1']);
 
             expect($execution->hasStarted())->toBeTrue();
@@ -387,7 +387,7 @@ describe('ScriptExecution', function () {
 
     describe('total execution time', function () {
         it('calculates total execution time', function () {
-            $execution = new ScriptExecution();
+            $execution = new ScriptExecution;
             $execution->start('test', 'Test', ['cmd1', 'cmd2', 'cmd3']);
 
             $execution->markCurrentAsRunning();

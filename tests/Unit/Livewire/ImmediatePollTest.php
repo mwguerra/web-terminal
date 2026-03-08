@@ -16,7 +16,7 @@ afterEach(function () {
 
 describe('Immediate Poll Behavior', function () {
     it('captures output from fast commands with immediate poll', function () {
-        $handler = new LocalConnectionHandler();
+        $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
         $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
 
@@ -38,7 +38,7 @@ describe('Immediate Poll Behavior', function () {
     });
 
     it('captures output from ls command', function () {
-        $handler = new LocalConnectionHandler();
+        $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
         $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
         $handler->setWorkingDirectory('/tmp');
@@ -68,7 +68,7 @@ describe('Immediate Poll Behavior', function () {
     });
 
     it('captures output from pwd command', function () {
-        $handler = new LocalConnectionHandler();
+        $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
         $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
         $handler->setWorkingDirectory('/tmp');
@@ -90,7 +90,7 @@ describe('Immediate Poll Behavior', function () {
     });
 
     it('captures stderr from failed commands', function () {
-        $handler = new LocalConnectionHandler();
+        $handler = new LocalConnectionHandler;
         $handler->connect(ConnectionConfig::local());
         $handler->setPreferTmux(false); // Use ProcessSessionManager for this test
 

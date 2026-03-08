@@ -6,7 +6,6 @@ namespace MWGuerra\WebTerminal\Security;
 
 use Illuminate\Support\Facades\Crypt;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
-use MWGuerra\WebTerminal\Enums\ConnectionType;
 
 /**
  * Service for secure credential management.
@@ -232,7 +231,7 @@ class CredentialManager
      * accidentally included in data intended for logging.
      *
      * @param  array<string, mixed>  $data
-     * @return array<string>  List of field names that contain sensitive data
+     * @return array<string> List of field names that contain sensitive data
      */
     public function detectSensitiveData(array $data): array
     {

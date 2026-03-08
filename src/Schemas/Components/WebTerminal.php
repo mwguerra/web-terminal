@@ -6,7 +6,6 @@ use Closure;
 use Filament\Schemas\Components\Livewire;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Data\Script;
-use MWGuerra\WebTerminal\Enums\ConnectionType;
 use MWGuerra\WebTerminal\Livewire\WebTerminal as WebTerminalComponent;
 
 /**
@@ -218,10 +217,8 @@ class WebTerminal extends Livewire
      *
      * @example Named parameters:
      * ->ssh(host: 'example.com', username: 'user', password: 'pass')
-     *
      * @example Array configuration:
      * ->ssh(['host' => 'example.com', 'username' => 'user', 'password' => 'pass'])
-     *
      * @example Closure (evaluated at render time):
      * ->ssh(fn () => [
      *     'host' => config('ssh.host'),
@@ -746,7 +743,6 @@ class WebTerminal extends Livewire
      *
      * @example Named parameters:
      * ->log(enabled: true, commands: true, identifier: 'my-terminal')
-     *
      * @example Array configuration:
      * ->log([
      *     'enabled' => true,
@@ -755,7 +751,6 @@ class WebTerminal extends Livewire
      *     'identifier' => 'my-terminal',
      *     'metadata' => ['context' => 'admin'],
      * ])
-     *
      * @example Closure (evaluated at render time):
      * ->log(fn () => [
      *     'enabled' => true,
@@ -1058,7 +1053,6 @@ class WebTerminal extends Livewire
      *         ->commands(['tail -100 storage/logs/laravel.log'])
      *         ->continueOnError(),
      * ])
-     *
      * @example Array syntax (also supported):
      * ->scripts([
      *     [
@@ -1067,14 +1061,12 @@ class WebTerminal extends Livewire
      *         'commands' => ['php artisan backup:run'],
      *     ],
      * ])
-     *
      * @example Dynamic from database with closure:
      * ->scripts(fn () => auth()->user()->scripts->map(
      *     fn ($s) => Script::make($s->slug)
      *         ->label($s->name)
      *         ->commands($s->commands)
      * )->toArray())
-     *
      * @example Elevated script (bypasses allowedCommands validation):
      * ->scripts([
      *     Script::make('full-deploy')
@@ -1085,7 +1077,6 @@ class WebTerminal extends Livewire
      *             'sudo systemctl restart php-fpm',
      *         ]),
      * ])
-     *
      * @example Script that causes disconnection:
      * ->scripts([
      *     Script::make('reboot')

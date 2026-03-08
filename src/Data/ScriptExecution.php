@@ -47,7 +47,7 @@ class ScriptExecution
         $this->isPaused = false;
         $this->isCancelled = false;
         $this->currentCommandIndex = 0;
-        $this->startedAt = new DateTimeImmutable();
+        $this->startedAt = new DateTimeImmutable;
         $this->finishedAt = null;
 
         $this->commands = [];
@@ -73,7 +73,7 @@ class ScriptExecution
      */
     public static function fromArray(array $data): static
     {
-        $execution = new static();
+        $execution = new static;
 
         $execution->isRunning = $data['isRunning'] ?? false;
         $execution->isPaused = $data['isPaused'] ?? false;
@@ -99,7 +99,7 @@ class ScriptExecution
     {
         if (isset($this->commands[$this->currentCommandIndex])) {
             $this->commands[$this->currentCommandIndex]['status'] = ScriptCommandStatus::Running->value;
-            $this->commands[$this->currentCommandIndex]['startedAt'] = (new DateTimeImmutable())->format('c');
+            $this->commands[$this->currentCommandIndex]['startedAt'] = (new DateTimeImmutable)->format('c');
         }
 
         return $this;
@@ -115,7 +115,7 @@ class ScriptExecution
             $this->commands[$this->currentCommandIndex]['exitCode'] = $exitCode;
             $this->commands[$this->currentCommandIndex]['output'] = $output;
             $this->commands[$this->currentCommandIndex]['executionTime'] = $executionTime;
-            $this->commands[$this->currentCommandIndex]['finishedAt'] = (new DateTimeImmutable())->format('c');
+            $this->commands[$this->currentCommandIndex]['finishedAt'] = (new DateTimeImmutable)->format('c');
         }
 
         return $this;
@@ -131,7 +131,7 @@ class ScriptExecution
             $this->commands[$this->currentCommandIndex]['exitCode'] = $exitCode;
             $this->commands[$this->currentCommandIndex]['output'] = $output;
             $this->commands[$this->currentCommandIndex]['executionTime'] = $executionTime;
-            $this->commands[$this->currentCommandIndex]['finishedAt'] = (new DateTimeImmutable())->format('c');
+            $this->commands[$this->currentCommandIndex]['finishedAt'] = (new DateTimeImmutable)->format('c');
         }
 
         return $this;
@@ -242,7 +242,7 @@ class ScriptExecution
         $this->isCancelled = true;
         $this->isRunning = false;
         $this->markRemainingAsSkipped();
-        $this->finishedAt = new DateTimeImmutable();
+        $this->finishedAt = new DateTimeImmutable;
 
         return $this;
     }
@@ -253,7 +253,7 @@ class ScriptExecution
     public function finish(): static
     {
         $this->isRunning = false;
-        $this->finishedAt = new DateTimeImmutable();
+        $this->finishedAt = new DateTimeImmutable;
 
         return $this;
     }

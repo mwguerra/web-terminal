@@ -205,7 +205,7 @@ class CommandSanitizer
         // Escape each argument individually for better safety
         $escapedArgs = array_map(fn ($arg) => $this->escapeArgument($arg), $parts);
 
-        return $binary . ' ' . implode(' ', $escapedArgs);
+        return $binary.' '.implode(' ', $escapedArgs);
     }
 
     /**
@@ -282,7 +282,7 @@ class CommandSanitizer
 
             // Handle escape sequences
             if ($char === '\\' && $i + 1 < $length) {
-                $current .= $char . $command[$i + 1];
+                $current .= $char.$command[$i + 1];
                 $i++;
 
                 continue;

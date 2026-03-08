@@ -96,6 +96,29 @@
         </div>
         @endif
 
+        {{-- Copy All Button --}}
+        <button
+            type="button"
+            @click="copyAllOutput()"
+            class="flex items-center justify-center w-7 h-7 rounded-full transition-all duration-200"
+            :class="{
+                'bg-emerald-500/20 text-emerald-600 ring-1 ring-emerald-500/40 dark:bg-emerald-500/30 dark:text-emerald-400': copyFeedback,
+                'bg-slate-300/50 text-slate-500 hover:bg-slate-300 hover:text-slate-700 dark:bg-white/5 dark:text-white/40 dark:hover:bg-white/10 dark:hover:text-white/60': !copyFeedback
+            }"
+            :title="copyFeedback ? 'Copied!' : 'Copy all output'"
+            :disabled="!$wire.output || $wire.output.length === 0"
+        >
+            {{-- Clipboard icon (default) --}}
+            <svg x-show="!copyFeedback" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                <path d="M7 3.5A1.5 1.5 0 0 1 8.5 2h3A1.5 1.5 0 0 1 13 3.5H7ZM5.5 5A1.5 1.5 0 0 0 4 6.5v10A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-10A1.5 1.5 0 0 0 14.5 5h-9Z"/>
+                <path d="M8.5 1A2.5 2.5 0 0 0 6 3.5H4.5A2.5 2.5 0 0 0 2 6v10.5A2.5 2.5 0 0 0 4.5 19h9a2.5 2.5 0 0 0 2.5-2.5V6a2.5 2.5 0 0 0-2.5-2.5H12A2.5 2.5 0 0 0 9.5 1h-1Z"/>
+            </svg>
+            {{-- Checkmark icon (after copy) --}}
+            <svg x-show="copyFeedback" x-cloak xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+            </svg>
+        </button>
+
         {{-- Info Toggle Button --}}
         <button
             type="button"

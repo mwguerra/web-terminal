@@ -44,7 +44,7 @@ class ProcessSessionManager implements SessionManagerInterface
      * @param  string|null  $cwd  Working directory
      * @param  array<string, string>|null  $env  Environment variables
      * @param  float|null  $timeout  Timeout in seconds (null for no timeout)
-     * @return string  The session ID
+     * @return string The session ID
      */
     public function start(
         string $command,
@@ -54,7 +54,7 @@ class ProcessSessionManager implements SessionManagerInterface
     ): string {
         $sessionId = $this->generateSessionId();
 
-        $input = new InputStream();
+        $input = new InputStream;
 
         $process = Process::fromShellCommandline(
             command: $command,
@@ -86,7 +86,7 @@ class ProcessSessionManager implements SessionManagerInterface
      * Returns only new output since last call (not cumulative).
      *
      * @param  string  $sessionId  The session ID
-     * @return array{stdout: string, stderr: string}|null  Output or null if session not found
+     * @return array{stdout: string, stderr: string}|null Output or null if session not found
      */
     public function getOutput(string $sessionId): ?array
     {
@@ -114,7 +114,7 @@ class ProcessSessionManager implements SessionManagerInterface
      *
      * @param  string  $sessionId  The session ID
      * @param  string  $input  The input to send (newline appended automatically)
-     * @return bool  True if input was sent, false if session not found or process not running
+     * @return bool True if input was sent, false if session not found or process not running
      */
     public function sendInput(string $sessionId, string $input): bool
     {
@@ -142,7 +142,7 @@ class ProcessSessionManager implements SessionManagerInterface
      *
      * @param  string  $sessionId  The session ID
      * @param  string  $input  The raw input to send
-     * @return bool  True if input was sent, false if session not found or process not running
+     * @return bool True if input was sent, false if session not found or process not running
      */
     public function sendRawInput(string $sessionId, string $input): bool
     {
@@ -162,7 +162,7 @@ class ProcessSessionManager implements SessionManagerInterface
      * Check if a process is still running.
      *
      * @param  string  $sessionId  The session ID
-     * @return bool  True if running, false if not found or finished
+     * @return bool True if running, false if not found or finished
      */
     public function isRunning(string $sessionId): bool
     {
@@ -179,7 +179,7 @@ class ProcessSessionManager implements SessionManagerInterface
      * Get the exit code of a finished process.
      *
      * @param  string  $sessionId  The session ID
-     * @return int|null  Exit code or null if still running/not found
+     * @return int|null Exit code or null if still running/not found
      */
     public function getExitCode(string $sessionId): ?int
     {
@@ -196,7 +196,7 @@ class ProcessSessionManager implements SessionManagerInterface
      * Terminate a running process.
      *
      * @param  string  $sessionId  The session ID
-     * @return bool  True if terminated, false if not found
+     * @return bool True if terminated, false if not found
      */
     public function terminate(string $sessionId): bool
     {

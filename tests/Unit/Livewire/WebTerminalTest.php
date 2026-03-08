@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Livewire\Livewire;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
-use MWGuerra\WebTerminal\Enums\ConnectionType;
 use MWGuerra\WebTerminal\Livewire\WebTerminal;
 
 describe('WebTerminal Component', function () {
@@ -415,6 +414,57 @@ describe('WebTerminal Component', function () {
                 ->call('resetHistoryIndex');
 
             expect($component->get('historyIndex'))->toBe(-1);
+        });
+    });
+
+    describe('getPlainTextOutput', function () {
+        it('returns empty string when no output', function () {
+            $component = Livewire::test(WebTerminal::class);
+
+            // Clear the welcome message
+            $component->call('clearOutput');
+
+            expect($component->instance()->getPlainTextOutput())->toBe('');
+        });
+
+        it('returns plain text from output lines', function () {
+            $component = Livewire::test(WebTerminal::class);
+            $component->call('clearOutput');
+
+            // Manually add output lines via reflection to test the method
+            $instance = $component->instance();
+            $instance->output = [
+                ['type' => 'command', 'content' => '$ ls', 'timestamp' => now()->toISOString(), 'css_class' => 'terminal-command'],
+                ['type' => 'stdout', 'content' => 'file1.txt', 'timestamp' => now()->toISOString(), 'css_class' => 'terminal-stdout'],
+                ['type' => 'stdout', 'content' => 'file2.txt', 'timestamp' => now()->toISOString(), 'css_class' => 'terminal-stdout'],
+            ];
+
+            $result = $instance->getPlainTextOutput();
+            expect($result)->toBe("$ ls\nfile1.txt\nfile2.txt");
+        });
+
+        it('strips ANSI codes from output', function () {
+            $component = Livewire::test(WebTerminal::class);
+            $instance = $component->instance();
+            $instance->output = [
+                ['type' => 'stdout', 'content' => "\x1b[31mred text\x1b[0m", 'timestamp' => now()->toISOString(), 'css_class' => 'terminal-stdout'],
+            ];
+
+            $result = $instance->getPlainTextOutput();
+            expect($result)->toBe('red text');
+        });
+
+        it('skips empty content lines', function () {
+            $component = Livewire::test(WebTerminal::class);
+            $instance = $component->instance();
+            $instance->output = [
+                ['type' => 'command', 'content' => '$ pwd', 'timestamp' => now()->toISOString(), 'css_class' => 'terminal-command'],
+                ['type' => 'stdout', 'content' => '', 'timestamp' => now()->toISOString(), 'css_class' => 'terminal-stdout'],
+                ['type' => 'stdout', 'content' => '/home/user', 'timestamp' => now()->toISOString(), 'css_class' => 'terminal-stdout'],
+            ];
+
+            $result = $instance->getPlainTextOutput();
+            expect($result)->toBe("$ pwd\n/home/user");
         });
     });
 

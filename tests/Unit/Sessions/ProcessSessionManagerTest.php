@@ -7,7 +7,7 @@ use MWGuerra\WebTerminal\Sessions\ProcessSessionManager;
 beforeEach(function () {
     // Clear any lingering sessions from previous tests
     ProcessSessionManager::clearAllSessions();
-    $this->manager = new ProcessSessionManager();
+    $this->manager = new ProcessSessionManager;
 });
 
 afterEach(function () {
@@ -100,7 +100,7 @@ describe('ProcessSessionManager', function () {
             $secondContent = $second['stdout'] ?? '';
 
             // The exact timing may vary, but we should see both outputs eventually
-            $combined = $firstContent . $secondContent;
+            $combined = $firstContent.$secondContent;
             expect($combined)->toContain('first');
             expect($combined)->toContain('second');
         });

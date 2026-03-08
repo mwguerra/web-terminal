@@ -67,3 +67,19 @@
 @keyframes ansi-blink {
     50% { opacity: 0; }
 }
+
+/* Terminal block copy button hover */
+.terminal-block {
+    border-left: 2px solid transparent;
+    padding-left: 4px;
+    margin-left: -6px;
+    transition: border-color 0.15s ease;
+}
+
+.terminal-block:hover {
+    border-left-color: rgba(148, 163, 184, 0.2);
+}
+
+:is(.dark .terminal-block:hover) {
+    border-left-color: rgba(255, 255, 255, 0.1);
+}

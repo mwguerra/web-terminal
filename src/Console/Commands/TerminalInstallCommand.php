@@ -9,7 +9,6 @@ use Filament\Panel;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\info;
@@ -299,7 +298,7 @@ class TerminalInstallCommand extends Command
         if (! $this->panel) {
             return [
                 app_path('Filament/Pages'),
-                app()->getNamespace() . 'Filament\\Pages',
+                app()->getNamespace().'Filament\\Pages',
             ];
         }
 
@@ -315,7 +314,7 @@ class TerminalInstallCommand extends Command
 
         return [
             Arr::first($directories) ?? app_path('Filament/Pages'),
-            Arr::first($namespaces) ?? app()->getNamespace() . 'Filament\\Pages',
+            Arr::first($namespaces) ?? app()->getNamespace().'Filament\\Pages',
         ];
     }
 
@@ -329,7 +328,7 @@ class TerminalInstallCommand extends Command
         if (! $this->panel) {
             return [
                 app_path('Filament/Resources'),
-                app()->getNamespace() . 'Filament\\Resources',
+                app()->getNamespace().'Filament\\Resources',
             ];
         }
 
@@ -345,7 +344,7 @@ class TerminalInstallCommand extends Command
 
         return [
             Arr::first($directories) ?? app_path('Filament/Resources'),
-            Arr::first($namespaces) ?? app()->getNamespace() . 'Filament\\Resources',
+            Arr::first($namespaces) ?? app()->getNamespace().'Filament\\Resources',
         ];
     }
 
@@ -371,7 +370,7 @@ class TerminalInstallCommand extends Command
      */
     protected function publishConfig(): void
     {
-        $source = __DIR__ . '/../../../config/web-terminal.php';
+        $source = __DIR__.'/../../../config/web-terminal.php';
         $destination = config_path('web-terminal.php');
 
         if ($this->files->exists($destination) && ! $this->option('force')) {
@@ -401,7 +400,7 @@ class TerminalInstallCommand extends Command
             ? 'create_terminal_logs_table_with_tenant.php.stub'
             : 'create_terminal_logs_table.php.stub';
 
-        $source = __DIR__ . '/../../../database/migrations/' . $stubName;
+        $source = __DIR__.'/../../../database/migrations/'.$stubName;
         $timestamp = date('Y_m_d_His');
         $destination = database_path("migrations/{$timestamp}_create_terminal_logs_table.php");
 
@@ -432,7 +431,7 @@ class TerminalInstallCommand extends Command
      */
     protected function publishViews(): void
     {
-        $source = __DIR__ . '/../../../resources/views';
+        $source = __DIR__.'/../../../resources/views';
         $destination = resource_path('views/vendor/web-terminal');
 
         if ($this->files->isDirectory($destination) && ! $this->option('force')) {
@@ -460,7 +459,7 @@ class TerminalInstallCommand extends Command
     {
         [$directory, $namespace] = $this->getPageDirectoryAndNamespace();
 
-        $path = $directory . '/Terminal.php';
+        $path = $directory.'/Terminal.php';
 
         if ($this->files->exists($path) && ! $this->option('force')) {
             if ($this->option('no-interaction')) {
@@ -523,8 +522,8 @@ class TerminalInstallCommand extends Command
     {
         [$resourceDirectory, $resourceNamespace] = $this->getResourceDirectoryAndNamespace();
 
-        $resourcePath = $resourceDirectory . '/TerminalLogResource.php';
-        $pagesDirectory = $resourceDirectory . '/TerminalLogResource/Pages';
+        $resourcePath = $resourceDirectory.'/TerminalLogResource.php';
+        $pagesDirectory = $resourceDirectory.'/TerminalLogResource/Pages';
 
         if ($this->files->exists($resourcePath) && ! $this->option('force')) {
             if ($this->option('no-interaction')) {
@@ -540,12 +539,12 @@ class TerminalInstallCommand extends Command
             }
         }
 
-        $pagesNamespace = $resourceNamespace . '\\TerminalLogResource\\Pages';
+        $pagesNamespace = $resourceNamespace.'\\TerminalLogResource\\Pages';
 
         // Generate resource class
         $resourceContent = $this->generateFromStub('terminal-log-resource.php.stub', [
             'namespace' => $resourceNamespace,
-            'pages_namespace' => '\\' . $pagesNamespace, // Leading backslash for absolute class reference
+            'pages_namespace' => '\\'.$pagesNamespace, // Leading backslash for absolute class reference
         ]);
 
         $this->files->ensureDirectoryExists($resourceDirectory);
@@ -556,15 +555,15 @@ class TerminalInstallCommand extends Command
 
         $listContent = $this->generateFromStub('terminal-log-list-page.php.stub', [
             'namespace' => $pagesNamespace,
-            'resource_class' => $resourceNamespace . '\\TerminalLogResource',
+            'resource_class' => $resourceNamespace.'\\TerminalLogResource',
         ]);
-        $this->files->put($pagesDirectory . '/ListTerminalLogs.php', $listContent);
+        $this->files->put($pagesDirectory.'/ListTerminalLogs.php', $listContent);
 
         $viewContent = $this->generateFromStub('terminal-log-view-page.php.stub', [
             'namespace' => $pagesNamespace,
-            'resource_class' => $resourceNamespace . '\\TerminalLogResource',
+            'resource_class' => $resourceNamespace.'\\TerminalLogResource',
         ]);
-        $this->files->put($pagesDirectory . '/ViewTerminalLog.php', $viewContent);
+        $this->files->put($pagesDirectory.'/ViewTerminalLog.php', $viewContent);
 
         $this->generatedResource = true;
         info("TerminalLogResource created at {$resourcePath}");
@@ -575,11 +574,11 @@ class TerminalInstallCommand extends Command
      */
     protected function generateFromStub(string $stubName, array $replacements): string
     {
-        $stubPath = __DIR__ . '/../../../stubs/' . $stubName;
+        $stubPath = __DIR__.'/../../../stubs/'.$stubName;
         $content = $this->files->get($stubPath);
 
         foreach ($replacements as $key => $value) {
-            $content = str_replace('{{ ' . $key . ' }}', $value, $content);
+            $content = str_replace('{{ '.$key.' }}', $value, $content);
         }
 
         return $content;

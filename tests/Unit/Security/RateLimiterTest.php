@@ -102,7 +102,7 @@ describe('RateLimiter', function () {
         });
 
         it('increments hit count on successful attempt', function () {
-            $uniqueKey = 'attempt-test-' . uniqid();
+            $uniqueKey = 'attempt-test-'.uniqid();
             $limiter = new RateLimiter(maxAttempts: 3, decaySeconds: 60);
 
             expect($limiter->remainingAttempts($uniqueKey))->toBe(3);
@@ -127,7 +127,7 @@ describe('RateLimiter', function () {
         });
 
         it('returns self for chaining', function () {
-            $limiter = new RateLimiter();
+            $limiter = new RateLimiter;
 
             $result = $limiter->clear('test-user');
 
@@ -153,7 +153,7 @@ describe('RateLimiter', function () {
         });
 
         it('can be toggled', function () {
-            $limiter = new RateLimiter();
+            $limiter = new RateLimiter;
 
             expect($limiter->isEnabled())->toBeTrue();
 
@@ -174,7 +174,7 @@ describe('RateLimiter', function () {
 
     describe('configuration', function () {
         it('can set max attempts', function () {
-            $limiter = new RateLimiter();
+            $limiter = new RateLimiter;
 
             $limiter->setMaxAttempts(5);
 
@@ -182,7 +182,7 @@ describe('RateLimiter', function () {
         });
 
         it('enforces minimum of 1 for max attempts', function () {
-            $limiter = new RateLimiter();
+            $limiter = new RateLimiter;
 
             $limiter->setMaxAttempts(0);
 
@@ -190,7 +190,7 @@ describe('RateLimiter', function () {
         });
 
         it('can set decay seconds', function () {
-            $limiter = new RateLimiter();
+            $limiter = new RateLimiter;
 
             $limiter->setDecaySeconds(30);
 
@@ -198,7 +198,7 @@ describe('RateLimiter', function () {
         });
 
         it('enforces minimum of 1 for decay seconds', function () {
-            $limiter = new RateLimiter();
+            $limiter = new RateLimiter;
 
             $limiter->setDecaySeconds(0);
 
@@ -206,7 +206,7 @@ describe('RateLimiter', function () {
         });
 
         it('can set custom prefix', function () {
-            $limiter = new RateLimiter();
+            $limiter = new RateLimiter;
 
             $limiter->setPrefix('custom-prefix');
 

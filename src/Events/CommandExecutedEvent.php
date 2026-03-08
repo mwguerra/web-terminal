@@ -136,7 +136,7 @@ class CommandExecutedEvent
 
         // Truncate command if too long
         if (strlen($data['command']) > 200) {
-            $data['command'] = substr($data['command'], 0, 200) . '...';
+            $data['command'] = substr($data['command'], 0, 200).'...';
         }
 
         return $data;

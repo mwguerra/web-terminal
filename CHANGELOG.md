@@ -21,6 +21,10 @@ All notable changes to this project will be documented in this file.
 - `allowChaining` and `allowExpansion` params added to `ValidCommand` attribute for consistency
 - Documentation for shell operator controls with risk levels and usage examples
 
+### Fixed
+
+- Prevent multi-line paste during interactive mode or script execution
+
 ## [v2.0.0] - 2026-03-04
 
 ### Changed

@@ -19,6 +19,7 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 - **Session management**: Inactivity timeout, disconnect-on-navigate, and session statistics
 - **Filament integration**: Terminal page and Terminal Logs resource with stats widgets
 - **Embeddable**: Use as Livewire component or Filament Schema component in any page
+- **Clipboard integration**: Copy All button, per-block copy on hover, multi-line paste with confirmation
 - **Security by design**: Credential protection, input sanitization, rate limiting
 - **Localization**: English and Portuguese (BR) translations included
 - **Dark mode**: Full dark mode support via Filament
@@ -1407,6 +1408,41 @@ The terminal includes these built-in commands:
 - `help` - Show available commands
 - `clear` - Clear terminal output
 - `history` - Show command history
+
+## Copy & Paste
+
+The terminal includes clipboard integration for copying output and pasting commands.
+
+### Copy All Output
+
+Click the clipboard icon in the terminal header bar to copy the entire terminal output as plain text. ANSI escape codes are stripped automatically. A brief checkmark feedback confirms the copy.
+
+### Per-Block Copy
+
+Hover over any command block (a command and its output) to reveal a copy button. Click it to copy that block's content to the clipboard.
+
+### Multi-Line Paste
+
+When you paste text containing multiple lines into the terminal input:
+
+- A confirmation modal appears listing all commands to be executed
+- Comment lines (starting with `#`) and empty lines are filtered out
+- Commands are executed sequentially with visual progress feedback
+- You can cancel at any time before or during execution
+
+Single-line pastes are inserted directly into the input field without a modal.
+
+**Note:** Multi-line paste is disabled during interactive mode (e.g., when a process like `top` is running) and during script execution.
+
+### Programmatic Access
+
+```php
+// Get terminal output as plain text (ANSI codes stripped)
+$text = $this->getPlainTextOutput();
+
+// Clear all terminal output
+$this->clearOutput();
+```
 
 ## Security by Design
 

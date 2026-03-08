@@ -113,8 +113,17 @@ class AnsiToHtml
         // Reset state for each conversion
         $this->resetState();
 
+        // Strip non-SGR escape sequences first (private mode, cursor, OSC, etc.)
+        $text = (string) preg_replace([
+            '/\x1b\[\?[0-9;]*[a-zA-Z]/', // Private mode sequences (\x1b[?2004h, etc.)
+            '/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\\\)/', // OSC sequences
+            '/\x1b[()][0-9A-B]/', // Character set selection
+            '/\x1b[>=]/', // Keypad mode
+            '/\r/', // Carriage returns
+        ], '', $text);
+
         // Handle both \x1b (ESC) and \033 (octal) escape sequences
-        // Pattern matches: ESC [ (params) m
+        // Pattern matches: ESC [ (params) m (SGR color/style sequences)
         $pattern = '/\x1b\[([0-9;]*)m|\033\[([0-9;]*)m/';
 
         $result = '';
@@ -526,7 +535,19 @@ class AnsiToHtml
      */
     public static function strip(string $text): string
     {
-        // Remove all ANSI escape sequences
-        return (string) preg_replace('/\x1b\[[0-9;]*m|\033\[[0-9;]*m/', '', $text);
+        // Remove all ANSI/VT100 escape sequences:
+        // - CSI sequences: \x1b[ ... (letter) — colors, cursor, erase, etc.
+        // - Private mode: \x1b[? ... h/l — bracketed paste, cursor visibility, etc.
+        // - OSC sequences: \x1b] ... ST — title, hyperlinks, etc.
+        // - Simple escapes: \x1b followed by single char
+        $text = (string) preg_replace([
+            '/\x1b\[\??[0-9;]*[a-zA-Z]/', // CSI sequences (including private mode ?...)
+            '/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\\\)/', // OSC sequences (terminated by BEL or ST)
+            '/\x1b[()][0-9A-B]/', // Character set selection
+            '/\x1b[>=]/', // Keypad mode
+            '/\r/', // Carriage returns
+        ], '', $text);
+
+        return $text;
     }
 }

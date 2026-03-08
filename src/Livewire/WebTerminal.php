@@ -88,6 +88,14 @@ class WebTerminal extends Component
     protected string $interactiveCommand = '';
 
     /**
+     * Inputs sent to interactive session pending PTY echo removal.
+     *
+     * @var array<string>
+     */
+    #[Locked]
+    public array $pendingInputEchoes = [];
+
+    /**
      * Timestamp when interactive command started (for execution time logging).
      */
     protected float $interactiveStartTime = 0;
@@ -1618,7 +1626,7 @@ class WebTerminal extends Component
     {
         // Add stdout
         if (! empty($output['stdout'])) {
-            $lines = $this->cleanOutputLines($output['stdout']);
+            $lines = $this->cleanInteractiveOutputLines($output['stdout']);
             foreach ($lines as $line) {
                 $this->addOutput(TerminalOutput::stdout($line));
             }
@@ -1626,11 +1634,50 @@ class WebTerminal extends Component
 
         // Add stderr
         if (! empty($output['stderr'])) {
-            $lines = $this->cleanOutputLines($output['stderr']);
+            $lines = $this->cleanInteractiveOutputLines($output['stderr']);
             foreach ($lines as $line) {
                 $this->addOutput(TerminalOutput::stderr($line));
             }
         }
+    }
+
+    /**
+     * Clean interactive output: strip ANSI control sequences and PTY input echoes.
+     *
+     * @return array<string>
+     */
+    protected function cleanInteractiveOutputLines(string $output): array
+    {
+        // Strip all ANSI escape sequences (colors are re-applied by AnsiToHtml in the view)
+        $output = AnsiToHtml::strip($output);
+
+        $lines = explode("\n", $output);
+
+        // Remove PTY input echoes — the PTY echoes back what was written to stdin,
+        // but we already display the input as a command line via TerminalOutput::command()
+        $lines = array_values(array_filter($lines, function (string $line): bool {
+            $stripped = trim($line);
+
+            if ($stripped === '' || empty($this->pendingInputEchoes)) {
+                return $stripped !== '';
+            }
+
+            foreach ($this->pendingInputEchoes as $key => $echo) {
+                if ($stripped === $echo) {
+                    unset($this->pendingInputEchoes[$key]);
+                    $this->pendingInputEchoes = array_values($this->pendingInputEchoes);
+
+                    return false;
+                }
+            }
+
+            return true;
+        }));
+
+        // Remove lines that are just a prompt character (e.g., ">", ">>> ")
+        $lines = array_values(array_filter($lines, fn (string $line) => ! preg_match('/^\s*>{1,3}\s*$/', $line)));
+
+        return $lines;
     }
 
     /**
@@ -1653,6 +1700,9 @@ class WebTerminal extends Component
 
             // Echo the input to show what was sent
             $this->addOutput(TerminalOutput::command($input));
+
+            // Track input for PTY echo removal
+            $this->pendingInputEchoes[] = $input;
 
             // Send input to the process
             if (! $handler->writeInput($this->activeSessionId, $input)) {
@@ -1957,6 +2007,7 @@ class WebTerminal extends Component
         $this->interactiveOutputStart = 0;
         $this->interactiveCommand = '';
         $this->interactiveStartTime = 0;
+        $this->pendingInputEchoes = [];
     }
 
     /**

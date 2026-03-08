@@ -1562,13 +1562,13 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($isFullScreen && $hasContent) {
-                    // TUI detected — kill process and show error
+                if ($hasContent && TuiDetector::containsTuiSequences($output['stdout'] ?? '')) {
                     $this->handleTuiDetected($handler);
 
                     return;
+                } elseif ($isFullScreen) {
+                    $this->replaceInteractiveOutput($output);
                 } else {
-                    // Incremental mode: append output
                     $this->appendInteractiveOutput($output);
                 }
             }
@@ -1793,13 +1793,13 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($isFullScreen && $hasContent) {
-                    // TUI detected — kill process and show error
+                if ($hasContent && TuiDetector::containsTuiSequences($output['stdout'] ?? '')) {
                     $this->handleTuiDetected($handler);
 
                     return;
+                } elseif ($isFullScreen) {
+                    $this->replaceInteractiveOutput($output);
                 } else {
-                    // Incremental mode: append output
                     $this->appendInteractiveOutput($output);
                 }
             }
@@ -2417,11 +2417,12 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($isFullScreen && $hasContent) {
-                    // TUI detected — kill process and show error
+                if ($hasContent && TuiDetector::containsTuiSequences($output['stdout'] ?? '')) {
                     $this->handleTuiDetected($handler);
 
                     return;
+                } elseif ($isFullScreen) {
+                    $this->replaceInteractiveOutput($output);
                 } else {
                     $this->appendInteractiveOutput($output);
                 }

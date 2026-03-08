@@ -211,6 +211,56 @@
                 }, 1500);
             }
         },
+        showPasteModal: false,
+        pasteCommands: [],
+        pasteExecuting: false,
+        pasteCurrentIndex: 0,
+        handlePaste(event) {
+            if (!this.isConnected) return;
+
+            const text = (event.clipboardData || window.clipboardData).getData('text');
+            if (!text || !text.includes('\n')) return;
+
+            event.preventDefault();
+
+            // Parse lines: filter comments (#) and empty lines
+            const lines = text.split('\n')
+                .map(line => line.trim())
+                .filter(line => line !== '' && !line.startsWith('#'));
+
+            if (lines.length === 0) return;
+
+            if (lines.length === 1) {
+                // Single effective line after filtering — just paste it
+                $wire.set('command', lines[0]);
+                return;
+            }
+
+            this.pasteCommands = lines;
+            this.pasteCurrentIndex = 0;
+            this.pasteExecuting = false;
+            this.showPasteModal = true;
+        },
+        async executePastedCommands() {
+            this.pasteExecuting = true;
+
+            for (let i = 0; i < this.pasteCommands.length; i++) {
+                this.pasteCurrentIndex = i;
+                $wire.set('command', this.pasteCommands[i]);
+                await $wire.executeCommand();
+                // Small delay between commands for UI to update
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+
+            this.pasteExecuting = false;
+            this.showPasteModal = false;
+            this.pasteCommands = [];
+        },
+        cancelPaste() {
+            this.showPasteModal = false;
+            this.pasteCommands = [];
+            this.pasteExecuting = false;
+        },
         isScriptRunning() {
             return this.scriptExecution && this.scriptExecution.isRunning === true;
         },
@@ -262,4 +312,6 @@
     @include('web-terminal::partials.interactive-controls')
 
     @include('web-terminal::partials.script-panel')
+
+    @include('web-terminal::partials.paste-modal')
 </div>

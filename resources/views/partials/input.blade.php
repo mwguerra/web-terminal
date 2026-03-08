@@ -19,6 +19,7 @@
         wire:keydown.enter="executeCommand"
         @keydown="handleKeydown($event)"
         @input="scrollToBottom()"
+        @paste="handlePaste($event)"
         :placeholder="!isConnected ? 'Click Connect to start...' : ($wire.scriptAwaitingInput ? 'Enter input for running command... (Ctrl+C to cancel script)' : (isInteractive ? 'Type input and press Enter (Ctrl+C to cancel)...' : (isScriptRunning() ? 'Script running...' : 'Type a command...')))"
         autocomplete="off"
         autocapitalize="off"

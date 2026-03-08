@@ -8,6 +8,7 @@ use MWGuerra\WebTerminal\Data\CommandResult;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Enums\ConnectionType;
 use MWGuerra\WebTerminal\Exceptions\ConnectionException;
+use MWGuerra\WebTerminal\Sessions\FileSessionManager;
 use MWGuerra\WebTerminal\Sessions\ProcessSessionManager;
 use MWGuerra\WebTerminal\Sessions\SessionManagerInterface;
 use MWGuerra\WebTerminal\Sessions\TmuxSessionManager;
@@ -437,9 +438,11 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     protected function getSessionManager(): SessionManagerInterface
     {
         if ($this->sessionManager === null) {
-            // Use tmux if available and preferred
+            // Priority: Tmux > File > Process
             if ($this->preferTmux && TmuxSessionManager::isAvailable()) {
                 $this->sessionManager = new TmuxSessionManager;
+            } elseif (FileSessionManager::isAvailable()) {
+                $this->sessionManager = new FileSessionManager;
             } else {
                 $this->sessionManager = new ProcessSessionManager;
             }
@@ -485,5 +488,13 @@ class LocalConnectionHandler extends AbstractConnectionHandler
     public function isUsingTmux(): bool
     {
         return $this->getSessionManager() instanceof TmuxSessionManager;
+    }
+
+    /**
+     * Check if file session manager is being used.
+     */
+    public function isUsingFileSession(): bool
+    {
+        return $this->getSessionManager() instanceof FileSessionManager;
     }
 }

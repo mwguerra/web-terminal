@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- TUI application detection — full-screen apps (vim, htop, less, nano, etc.) are detected via alternate screen buffer sequences and blocked with a clear error message and non-interactive alternative suggestions
+- `TuiDetector` utility class for identifying TUI escape sequences and providing command suggestions
+
 ## [v2.1.0] - 2026-03-08
 
 ### Added

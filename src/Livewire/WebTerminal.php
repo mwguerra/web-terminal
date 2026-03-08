@@ -1200,6 +1200,9 @@ class WebTerminal extends Component
         $this->addOutput(TerminalOutput::info('Clipboard:'));
         $this->addOutput(TerminalOutput::stdout('  Hover   - Copy button appears on command blocks'));
         $this->addOutput(TerminalOutput::stdout('  Paste   - Multi-line paste shows confirmation modal'));
+        $this->addOutput(TerminalOutput::info(''));
+        $this->addOutput(TerminalOutput::info('Notes:'));
+        $this->addOutput(TerminalOutput::stdout('  Full-screen apps (vim, htop, less) are detected and blocked with suggestions.'));
     }
 
     /**

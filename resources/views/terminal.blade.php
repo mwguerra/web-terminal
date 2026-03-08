@@ -216,7 +216,7 @@
         pasteExecuting: false,
         pasteCurrentIndex: 0,
         handlePaste(event) {
-            if (!this.isConnected) return;
+            if (!this.isConnected || this.isInteractive || this.isScriptRunning()) return;
 
             const text = (event.clipboardData || window.clipboardData).getData('text');
             if (!text || !text.includes('\n')) return;

@@ -57,6 +57,31 @@ describe('CommandValidator', function () {
             expect($validator->isAllowed('git commit -m "test"'))->toBeTrue();
         });
 
+        it('supports multi-word wildcard patterns like php artisan *', function () {
+            $validator = new CommandValidator(
+                allowedCommands: ['php artisan *', 'composer *'],
+            );
+
+            expect($validator->isAllowed('php artisan tinker'))->toBeTrue();
+            expect($validator->isAllowed('php artisan migrate'))->toBeTrue();
+            expect($validator->isAllowed('php artisan queue:work'))->toBeTrue();
+            expect($validator->isAllowed('php artisan reverb:start --host=0.0.0.0'))->toBeTrue();
+            expect($validator->isAllowed('composer install'))->toBeTrue();
+            // Bare 'php' without 'artisan' should not match
+            expect($validator->isAllowed('php -v'))->toBeFalse();
+            // 'php artisan' without subcommand should still match (it has args: 'artisan')
+            expect($validator->isAllowed('php artisan'))->toBeFalse();
+        });
+
+        it('supports three-word wildcard patterns', function () {
+            $validator = new CommandValidator(
+                allowedCommands: ['docker compose exec *'],
+            );
+
+            expect($validator->isAllowed('docker compose exec app bash'))->toBeTrue();
+            expect($validator->isAllowed('docker compose up'))->toBeFalse();
+        });
+
         it('has O(1) lookup performance for exact matches', function () {
             // Create validator with many commands
             $commands = [];

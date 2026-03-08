@@ -287,6 +287,19 @@ class CommandValidator
             return true;
         }
 
+        // Check multi-word wildcard prefixes (e.g., 'php artisan *' matches 'php artisan tinker')
+        // Progressively build longer prefixes from command parts to find matches
+        $parts = $this->splitCommand($command);
+        if (count($parts) > 1) {
+            $prefix = '';
+            for ($i = 0; $i < count($parts) - 1; $i++) {
+                $prefix = $prefix === '' ? $parts[$i] : $prefix.' '.$parts[$i];
+                if (isset($this->wildcardCommands[$prefix])) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 

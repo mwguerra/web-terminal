@@ -55,15 +55,15 @@ class TuiDetector
         }
 
         if (in_array($baseCommand, self::EDITOR_COMMANDS, true)) {
-            $file = trim($arguments) !== '' ? ' ' . trim($arguments) : ' <file>';
+            $file = trim($arguments) !== '' ? ' '.trim($arguments) : ' <file>';
 
-            return 'Try instead: cat' . $file;
+            return 'Try instead: cat'.$file;
         }
 
         if ($baseCommand === 'man') {
-            $topic = trim($arguments) !== '' ? ' ' . trim($arguments) : ' <topic>';
+            $topic = trim($arguments) !== '' ? ' '.trim($arguments) : ' <topic>';
 
-            return 'Try instead: man' . $topic . ' | col -b (requires pipes enabled)';
+            return 'Try instead: man'.$topic.' | col -b (requires pipes enabled)';
         }
 
         return null;
@@ -76,7 +76,7 @@ class TuiDetector
         $suggestion = self::getSuggestion($command);
 
         if ($suggestion !== null) {
-            $message .= ' ' . $suggestion;
+            $message .= ' '.$suggestion;
         }
 
         return $message;

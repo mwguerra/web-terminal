@@ -262,9 +262,8 @@ describe('LocalConnectionHandler', function () {
     describe('interactive mode', function () {
         beforeEach(function () {
             $this->handler->connect(ConnectionConfig::local());
-            // Use ProcessSessionManager for these tests (disable tmux preference)
-            // TmuxSessionManager is tested separately
-            $this->handler->setPreferTmux(false);
+            // Force ProcessSessionManager for these tests (FileSessionManager merges stderr via PTY)
+            $this->handler->setSessionManager(new \MWGuerra\WebTerminal\Sessions\ProcessSessionManager);
         });
 
         afterEach(function () {
@@ -392,8 +391,8 @@ describe('LocalConnectionHandler', function () {
             expect($sessionId)->toBeString();
             expect($sessionId)->not->toBeEmpty();
 
-            // Login shell takes longer due to environment setup scripts (~600-800ms)
-            usleep(800000);
+            // Login shell takes longer due to environment setup scripts
+            usleep(1500000);
 
             // Process should complete successfully
             expect($this->handler->isProcessRunning($sessionId))->toBeFalse();

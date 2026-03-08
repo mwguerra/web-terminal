@@ -13,6 +13,8 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 
 - **Connection types**: Local shell execution or SSH connections to remote servers
 - **Command whitelisting**: Configurable allowlist to restrict which commands can be executed
+- **Interactive mode**: PTY/tmux sessions for artisan tinker, reverb:start, queue:work, and other interactive/long-running commands
+- **Enum-based permissions**: `TerminalPermission` enum for clean, declarative permission control
 - **Scripts**: Define reusable command sequences with progress tracking and one-click execution
 - **Comprehensive logging**: Audit trail for connections, commands, outputs, and errors
 - **Multi-tenant support**: Built-in tenant isolation for SaaS applications
@@ -795,6 +797,8 @@ WebTerminal::make()->connection($config)
 | `key(string)` | Unique identifier for the terminal instance | `'web-terminal'` |
 | `allowedCommands(array)` | Commands users can execute | `[]` |
 | `allowAllCommands()` | Bypass command whitelist (use with caution) | `false` |
+| `allowInteractiveMode()` | Enable interactive execution (PTY/tmux) for streaming output and stdin | `false` |
+| `allow(array)` | Set permissions using `TerminalPermission` enum values | - |
 | `loginShell()` | Use login shell for full environment (loads .bashrc) | `false` |
 | `timeout(int)` | Command timeout in seconds | `10` |
 | `prompt(string)` | Terminal prompt symbol | `'$ '` |
@@ -1504,6 +1508,71 @@ WebTerminal::make()
     ->allowAllCommands()
     ->allowAllShellOperators()
 ```
+
+### Interactive Mode
+
+By default, commands run synchronously — they execute, wait for completion, and return the output. This works for simple commands like `ls` or `pwd`, but fails for:
+
+- **REPL commands** like `php artisan tinker` (needs stdin input)
+- **Long-running processes** like `php artisan reverb:start` or `php artisan queue:work` (timeout)
+- **Interactive installers** like `composer create-project` (needs user input)
+
+Enable interactive mode to use PTY/tmux sessions with streaming output and stdin support:
+
+```php
+// Whitelist + interactive mode (secure and functional)
+WebTerminal::make()
+    ->allowedCommands(['php artisan *', 'composer *', 'npm *'])
+    ->allowInteractiveMode()
+    ->allowAllShellOperators()
+
+// Or use the TerminalPermission enum
+use MWGuerra\WebTerminal\Enums\TerminalPermission;
+
+WebTerminal::make()
+    ->allowedCommands(['php artisan *', 'composer *'])
+    ->allow([TerminalPermission::InteractiveMode, TerminalPermission::ShellOperators])
+```
+
+When `allowInteractiveMode()` is enabled:
+- Commands still go through the whitelist validation
+- Execution uses tmux/PTY sessions instead of synchronous Symfony Process
+- Output streams in real-time via polling (500ms intervals)
+- Users can send stdin input during execution
+- TUI detection still blocks full-screen apps (vim, htop, etc.)
+
+### Permissions with `TerminalPermission` Enum
+
+Instead of chaining multiple `allow*()` methods, use the `allow()` method with the `TerminalPermission` enum:
+
+```php
+use MWGuerra\WebTerminal\Enums\TerminalPermission;
+
+// Individual permissions
+WebTerminal::make()
+    ->allow([TerminalPermission::InteractiveMode, TerminalPermission::Pipes])
+
+// All shell operators
+WebTerminal::make()
+    ->allow([TerminalPermission::ShellOperators])
+
+// Everything (commands + operators + interactive)
+WebTerminal::make()
+    ->allow([TerminalPermission::All])
+```
+
+Available permissions:
+
+| Enum Case | Description | Equivalent Method |
+|-----------|-------------|-------------------|
+| `AllCommands` | Bypass command whitelist | `allowAllCommands()` |
+| `Pipes` | Allow pipe operator (`\|`) | `allowPipes()` |
+| `Redirection` | Allow redirection (`>` `<` `>>`) | `allowRedirection()` |
+| `Chaining` | Allow chaining (`;` `&&` `\|\|`) | `allowChaining()` |
+| `Expansion` | Allow variable expansion (`$()` `${}`) | `allowExpansion()` |
+| `ShellOperators` | All operator groups above | `allowAllShellOperators()` |
+| `InteractiveMode` | PTY/tmux streaming execution | `allowInteractiveMode()` |
+| `All` | Everything above combined | - |
 
 #### Security Invariants
 

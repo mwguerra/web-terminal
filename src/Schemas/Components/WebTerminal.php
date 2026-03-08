@@ -6,6 +6,7 @@ use Closure;
 use Filament\Schemas\Components\Livewire;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Data\Script;
+use MWGuerra\WebTerminal\Enums\TerminalPermission;
 use MWGuerra\WebTerminal\Livewire\WebTerminal as WebTerminalComponent;
 
 /**
@@ -39,7 +40,9 @@ class WebTerminal extends Livewire
 
     protected ?string $workingDirectory = null;
 
-    protected bool|Closure $allowAll = false;
+    protected bool|Closure $allowAllCommands = false;
+
+    protected bool|Closure $allowInteractiveMode = false;
 
     protected bool|Closure $allowPipes = false;
 
@@ -122,6 +125,7 @@ class WebTerminal extends Livewire
             'allowChaining' => $this->getAllowChaining(),
             'allowExpansion' => $this->getAllowExpansion(),
             'allowAllShellOperators' => $this->getAllowAllShellOperators(),
+            'allowInteractiveMode' => $this->getAllowInteractiveMode(),
             'environment' => $this->getEnvironment(),
             'useLoginShell' => $this->getUseLoginShell(),
             'shell' => $this->getShell(),
@@ -302,17 +306,69 @@ class WebTerminal extends Livewire
      */
     public function allowAllCommands(bool|Closure $allowAll = true): static
     {
-        $this->allowAll = $allowAll;
+        $this->allowAllCommands = $allowAll;
 
         return $this;
     }
 
-    /**
-     * Get whether all commands are allowed.
-     */
     public function getAllowAll(): bool
     {
-        return $this->evaluate($this->allowAll);
+        return $this->evaluate($this->allowAllCommands);
+    }
+
+    /**
+     * Enable interactive execution mode (PTY/tmux).
+     *
+     * When enabled, whitelisted commands run through the interactive path
+     * with streaming output and stdin support. The command whitelist is
+     * still enforced — this only changes HOW commands are executed.
+     */
+    public function allowInteractiveMode(bool|Closure $allow = true): static
+    {
+        $this->allowInteractiveMode = $allow;
+
+        return $this;
+    }
+
+    public function getAllowInteractiveMode(): bool
+    {
+        return $this->evaluate($this->allowInteractiveMode);
+    }
+
+    /**
+     * Set permissions using TerminalPermission enum values.
+     *
+     * Provides a clean, declarative way to configure terminal capabilities.
+     *
+     * @param  array<TerminalPermission>  $permissions
+     */
+    public function allow(array $permissions): static
+    {
+        $flags = TerminalPermission::resolveManyFlags($permissions);
+
+        if ($flags['allowAllCommands'] ?? false) {
+            $this->allowAllCommands = true;
+        }
+        if ($flags['allowPipes'] ?? false) {
+            $this->allowPipes = true;
+        }
+        if ($flags['allowRedirection'] ?? false) {
+            $this->allowRedirection = true;
+        }
+        if ($flags['allowChaining'] ?? false) {
+            $this->allowChaining = true;
+        }
+        if ($flags['allowExpansion'] ?? false) {
+            $this->allowExpansion = true;
+        }
+        if ($flags['allowAllShellOperators'] ?? false) {
+            $this->allowAllShellOperators = true;
+        }
+        if ($flags['allowInteractiveMode'] ?? false) {
+            $this->allowInteractiveMode = true;
+        }
+
+        return $this;
     }
 
     // ========================================

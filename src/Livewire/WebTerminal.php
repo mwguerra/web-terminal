@@ -88,6 +88,26 @@ class WebTerminal extends Component
     protected string $interactiveCommand = '';
 
     /**
+     * Inputs sent to the interactive session, used to identify PTY echo lines
+     * and render them as command type (green) instead of stdout.
+     *
+     * @var array<string>
+     */
+    #[Locked]
+    public array $pendingInputEchoes = [];
+
+    /**
+     * Buffered partial line from previous interactive output chunk.
+     *
+     * When a PTY output chunk doesn't end with a newline, the last "line"
+     * is incomplete (e.g., a REPL prompt like "> "). This buffer holds it
+     * so it can be prepended to the next chunk's first line, producing
+     * correctly joined lines like "> 1 + 1".
+     */
+    #[Locked]
+    public string $interactiveLineBuffer = '';
+
+    /**
      * Timestamp when interactive command started (for execution time logging).
      */
     protected float $interactiveStartTime = 0;
@@ -277,6 +297,13 @@ class WebTerminal extends Component
     public bool $allowAllShellOperators = false;
 
     /**
+     * Whether to use interactive execution (PTY/tmux) for whitelisted commands.
+     * Enables streaming output and stdin support without bypassing the whitelist.
+     */
+    #[Locked]
+    public bool $allowInteractiveMode = false;
+
+    /**
      * Environment variables for command execution.
      *
      * @var array<string, string>
@@ -437,6 +464,7 @@ class WebTerminal extends Component
         bool $allowChaining = false,
         bool $allowExpansion = false,
         bool $allowAllShellOperators = false,
+        bool $allowInteractiveMode = false,
         array $environment = [],
         bool $useLoginShell = false,
         string $shell = '/bin/bash',
@@ -497,6 +525,9 @@ class WebTerminal extends Component
         $this->allowChaining = $allowChaining || $allowAllShellOperators;
         $this->allowExpansion = $allowExpansion || $allowAllShellOperators;
         $this->allowAllShellOperators = $allowAllShellOperators;
+
+        // Set interactive mode flag
+        $this->allowInteractiveMode = $allowInteractiveMode;
 
         // Set environment variables
         $this->environment = $environment;
@@ -1224,7 +1255,7 @@ class WebTerminal extends Component
     protected function addCommandResultOutput(CommandResult $result): void
     {
         // Check for TUI sequences in output before rendering
-        $combinedOutput = $result->stdout . $result->stderr;
+        $combinedOutput = $result->stdout.$result->stderr;
         if (TuiDetector::containsTuiSequences($combinedOutput)) {
             $this->addOutput(TerminalOutput::error(
                 TuiDetector::getErrorMessage($result->command)
@@ -1562,7 +1593,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '').($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;
@@ -1607,19 +1638,104 @@ class WebTerminal extends Component
     {
         // Add stdout
         if (! empty($output['stdout'])) {
-            $lines = $this->cleanOutputLines($output['stdout']);
+            $lines = $this->cleanInteractiveOutputLines($output['stdout']);
             foreach ($lines as $line) {
-                $this->addOutput(TerminalOutput::stdout($line));
+                // If this line contains a pending input echo, render as command (green)
+                if ($this->matchesPendingInputEcho($line)) {
+                    $this->addOutput(TerminalOutput::command($line));
+                } else {
+                    $this->addOutput(TerminalOutput::stdout($line));
+                }
             }
         }
 
         // Add stderr
         if (! empty($output['stderr'])) {
-            $lines = $this->cleanOutputLines($output['stderr']);
+            $lines = $this->cleanInteractiveOutputLines($output['stderr']);
             foreach ($lines as $line) {
                 $this->addOutput(TerminalOutput::stderr($line));
             }
         }
+    }
+
+    /**
+     * Check if an output line contains a pending input echo and consume it.
+     *
+     * Matches lines where the user's input appears as a PTY echo, typically
+     * combined with a REPL prompt (e.g., "> 1 + 1" contains echo "1 + 1").
+     */
+    protected function matchesPendingInputEcho(string $line): bool
+    {
+        if (empty($this->pendingInputEchoes)) {
+            return false;
+        }
+
+        $trimmed = trim($line);
+
+        foreach ($this->pendingInputEchoes as $key => $echo) {
+            // Match exact echo or echo preceded by a prompt (e.g., "> 1 + 1")
+            if ($trimmed === $echo || str_ends_with($trimmed, $echo)) {
+                unset($this->pendingInputEchoes[$key]);
+                $this->pendingInputEchoes = array_values($this->pendingInputEchoes);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Clean interactive output: strip ANSI control sequences and PTY input echoes.
+     *
+     * @return array<string>
+     */
+    protected function cleanInteractiveOutputLines(string $output): array
+    {
+        // Strip all ANSI escape sequences (colors are re-applied by AnsiToHtml in the view)
+        $output = AnsiToHtml::strip($output);
+
+        // Prepend any buffered partial line from the previous chunk.
+        // This joins split REPL prompts with their echoed input (e.g., "> " + "1 + 1" → "> 1 + 1").
+        if ($this->interactiveLineBuffer !== '') {
+            $output = $this->interactiveLineBuffer.$output;
+            $this->interactiveLineBuffer = '';
+        }
+
+        // If the chunk doesn't end with a newline, the last "line" is incomplete
+        // (typically a REPL prompt waiting for input). Buffer it for next time.
+        if ($output !== '' && ! str_ends_with($output, "\n")) {
+            $lastNewline = strrpos($output, "\n");
+            if ($lastNewline !== false) {
+                $this->interactiveLineBuffer = substr($output, $lastNewline + 1);
+                $output = substr($output, 0, $lastNewline + 1);
+            } else {
+                // Entire chunk is a partial line (e.g., just "> ")
+                $this->interactiveLineBuffer = $output;
+
+                return [];
+            }
+        }
+
+        $lines = explode("\n", $output);
+
+        // Remove empty lines and PHP startup noise (Xdebug warnings, JIT incompatibility)
+        return array_values(array_filter($lines, function (string $line): bool {
+            $trimmed = trim($line);
+            if ($trimmed === '') {
+                return false;
+            }
+
+            // Filter PHP/Xdebug startup noise that isn't useful to terminal users
+            if (str_starts_with($trimmed, 'Xdebug: [Config]')) {
+                return false;
+            }
+            if (str_contains($trimmed, 'JIT is incompatible with third party extensions')) {
+                return false;
+            }
+
+            return true;
+        }));
     }
 
     /**
@@ -1640,8 +1756,8 @@ class WebTerminal extends Component
         try {
             $handler = $this->getConnectionHandler();
 
-            // Echo the input to show what was sent
-            $this->addOutput(TerminalOutput::command($input));
+            // Track input so we can render its PTY echo as command type (green)
+            $this->pendingInputEchoes[] = $input;
 
             // Send input to the process
             if (! $handler->writeInput($this->activeSessionId, $input)) {
@@ -1793,7 +1909,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '').($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;
@@ -1820,6 +1936,15 @@ class WebTerminal extends Component
      */
     protected function finishInteractiveSession(?int $exitCode): void
     {
+        // Flush any buffered partial line before finishing
+        if ($this->interactiveLineBuffer !== '') {
+            $flushed = trim($this->interactiveLineBuffer);
+            if ($flushed !== '') {
+                $this->addOutput(TerminalOutput::stdout($flushed));
+            }
+            $this->interactiveLineBuffer = '';
+        }
+
         if ($exitCode !== null && $exitCode !== 0) {
             $this->addOutput(TerminalOutput::info("Process exited with code {$exitCode}"));
         }
@@ -1946,6 +2071,8 @@ class WebTerminal extends Component
         $this->interactiveOutputStart = 0;
         $this->interactiveCommand = '';
         $this->interactiveStartTime = 0;
+        $this->interactiveLineBuffer = '';
+        $this->pendingInputEchoes = [];
     }
 
     /**
@@ -1956,7 +2083,7 @@ class WebTerminal extends Component
      */
     protected function shouldUseInteractiveMode(): bool
     {
-        if (! $this->allowAllCommands) {
+        if (! $this->allowAllCommands && ! $this->allowInteractiveMode) {
             return false;
         }
 
@@ -2417,7 +2544,7 @@ class WebTerminal extends Component
                 $isFullScreen = $output['full_screen'] ?? false;
                 $hasContent = ! empty($output['stdout']) || ! empty($output['stderr']);
 
-                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '') . ($output['stderr'] ?? ''))) {
+                if ($hasContent && TuiDetector::containsTuiSequences(($output['stdout'] ?? '').($output['stderr'] ?? ''))) {
                     $this->handleTuiDetected($handler);
 
                     return;

@@ -11,6 +11,7 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
+use MWGuerra\WebTerminal\Enums\TerminalPermission;
 use MWGuerra\WebTerminal\Schemas\Components\WebTerminal;
 use MWGuerra\WebTerminal\WebTerminalPlugin;
 
@@ -76,6 +77,7 @@ class Terminal extends Page implements HasSchemas
                                 'cat *', 'head *', 'tail *', 'wc *',
                                 'php artisan *', 'composer *',
                             ])
+                            ->allow([TerminalPermission::InteractiveMode, TerminalPermission::ShellOperators])
                             ->workingDirectory(base_path())
                             ->timeout(30)
                             ->prompt('$ ')

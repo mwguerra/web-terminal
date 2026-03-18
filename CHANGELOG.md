@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v2.2.0] - 2026-03-18
+
+### Added
+
+- Laravel 13 support (illuminate/contracts ^13.0, illuminate/support ^13.0, symfony/process ^8.0)
+
 ## [v2.1.2] - 2026-03-08
 
 ### Added

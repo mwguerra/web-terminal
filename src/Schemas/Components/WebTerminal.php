@@ -6,7 +6,10 @@ use Closure;
 use Filament\Schemas\Components\Livewire;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Data\Script;
+use MWGuerra\WebTerminal\Enums\TerminalMode;
 use MWGuerra\WebTerminal\Enums\TerminalPermission;
+use MWGuerra\WebTerminal\Livewire\GhosttyTerminal as GhosttyTerminalComponent;
+use MWGuerra\WebTerminal\Livewire\TerminalContainer as TerminalContainerComponent;
 use MWGuerra\WebTerminal\Livewire\WebTerminal as WebTerminalComponent;
 
 /**
@@ -88,6 +91,15 @@ class WebTerminal extends Livewire
     /** @var array<int, Script|array<string, mixed>>|Closure */
     protected array|Closure $scripts = [];
 
+    // Ghostty terminal mode
+    protected bool|Closure $ghosttyEnabled = false;
+
+    protected bool|Closure $classicEnabled = true;
+
+    protected TerminalMode $defaultMode = TerminalMode::Classic;
+
+    protected array|Closure $ghosttyTheme = [];
+
     public static function make(Closure|string|null $component = null, Closure|array $data = []): static
     {
         $static = app(static::class, [
@@ -101,12 +113,41 @@ class WebTerminal extends Livewire
     }
 
     /**
+     * Resolve the Livewire component class based on enabled modes.
+     */
+    protected function resolveComponentClass(): string
+    {
+        $ghosttyEnabled = $this->getGhosttyEnabled();
+        $classicEnabled = $this->getClassicEnabled();
+
+        if ($ghosttyEnabled && $classicEnabled) {
+            return TerminalContainerComponent::class;
+        }
+
+        if ($ghosttyEnabled) {
+            return GhosttyTerminalComponent::class;
+        }
+
+        return WebTerminalComponent::class;
+    }
+
+    /**
+     * Get the Livewire component class to use.
+     */
+    public function getComponent(): string
+    {
+        return $this->resolveComponentClass();
+    }
+
+    /**
      * Get the properties to pass to the Livewire component.
      *
      * @return array<string, mixed>
      */
     public function getComponentProperties(): array
     {
+        $ghosttyEnabled = $this->getGhosttyEnabled();
+        $classicEnabled = $this->getClassicEnabled();
         $config = $this->getConnectionConfig();
 
         // Add working directory if set
@@ -114,8 +155,8 @@ class WebTerminal extends Livewire
             $config['working_directory'] = $this->workingDirectory;
         }
 
-        // Filter out null values to let Livewire component use its defaults
-        return array_filter([
+        // Classic-only params (used by WebTerminal and as classicParams in container)
+        $classicParams = array_filter([
             ...parent::getComponentProperties(),
             'connection' => $config,
             'allowedCommands' => $this->getAllowedCommands(),
@@ -147,6 +188,37 @@ class WebTerminal extends Livewire
             'inactivityTimeout' => $this->getInactivityTimeout(),
             'scripts' => $this->getScripts(),
         ], fn ($value) => $value !== null);
+
+        // Dual-mode: TerminalContainer
+        if ($ghosttyEnabled && $classicEnabled) {
+            return [
+                'classicParams' => $classicParams,
+                'ghosttyParams' => [
+                    'connectionConfig' => $config,
+                    'ghosttyTheme' => $this->getGhosttyTheme(),
+                    'scripts' => $this->getScripts(),
+                ],
+                'defaultMode' => $this->defaultMode->value,
+                'height' => $this->getHeight(),
+                'title' => $this->getTitle(),
+                'showWindowControls' => $this->getShowWindowControls(),
+            ];
+        }
+
+        // Ghostty-only
+        if ($ghosttyEnabled) {
+            return [
+                'connectionConfig' => $config,
+                'height' => $this->getHeight(),
+                'title' => $this->getTitle(),
+                'ghosttyTheme' => $this->getGhosttyTheme(),
+                'showWindowControls' => $this->getShowWindowControls(),
+                'scripts' => $this->getScripts(),
+            ];
+        }
+
+        // Classic-only (default)
+        return $classicParams;
     }
 
     // ========================================
@@ -1177,6 +1249,57 @@ class WebTerminal extends Livewire
             // Validate array has required keys by converting through Script
             return Script::fromArray($script)->toArray();
         }, $scripts));
+    }
+    // ========================================
+    // Ghostty Terminal Mode Configuration
+    // ========================================
+
+    public function ghosttyTerminal(bool|Closure $enabled = true): static
+    {
+        $this->ghosttyEnabled = $enabled;
+
+        return $this;
+    }
+
+    public function getGhosttyEnabled(): bool
+    {
+        return $this->evaluate($this->ghosttyEnabled);
+    }
+
+    public function classicTerminal(bool|Closure $enabled = true): static
+    {
+        $this->classicEnabled = $enabled;
+
+        return $this;
+    }
+
+    public function getClassicEnabled(): bool
+    {
+        return $this->evaluate($this->classicEnabled);
+    }
+
+    public function defaultMode(TerminalMode $mode): static
+    {
+        $this->defaultMode = $mode;
+
+        return $this;
+    }
+
+    public function getDefaultMode(): TerminalMode
+    {
+        return $this->defaultMode;
+    }
+
+    public function ghosttyTheme(array|Closure $theme): static
+    {
+        $this->ghosttyTheme = $theme;
+
+        return $this;
+    }
+
+    public function getGhosttyTheme(): array
+    {
+        return $this->evaluate($this->ghosttyTheme);
     }
 }
 

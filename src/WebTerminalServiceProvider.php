@@ -6,6 +6,7 @@ namespace MWGuerra\WebTerminal;
 
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use MWGuerra\WebTerminal\Connections\ConnectionHandlerFactory;
@@ -65,6 +66,11 @@ class WebTerminalServiceProvider extends ServiceProvider
         $this->registerAssets();
 
         Livewire::component('web-terminal', WebTerminal::class);
+
+        Route::post('terminal/ws-token', [
+            \MWGuerra\WebTerminal\Http\Controllers\TerminalWebSocketController::class,
+            'generateToken',
+        ])->name('terminal.ws-token')->middleware(['web', 'auth']);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

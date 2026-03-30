@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\HtmlString;
 use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Enums\ConnectionType;
+use MWGuerra\WebTerminal\Enums\TerminalMode;
 use MWGuerra\WebTerminal\Enums\TerminalPermission;
 
 /**
@@ -88,6 +89,16 @@ class TerminalBuilder
     // Scripts
     /** @var array<mixed> */
     protected array $scripts = [];
+
+    // Ghostty mode
+    protected bool $ghosttyEnabled = false;
+
+    protected bool $classicEnabled = true;
+
+    protected TerminalMode $defaultMode = TerminalMode::Classic;
+
+    /** @var array<string, mixed> */
+    protected array $ghosttyTheme = [];
 
     // ========================================
     // Connection Configuration
@@ -434,6 +445,39 @@ class TerminalBuilder
     }
 
     // ========================================
+    // Ghostty Configuration
+    // ========================================
+
+    public function ghosttyTerminal(bool $enabled = true): static
+    {
+        $this->ghosttyEnabled = $enabled;
+
+        return $this;
+    }
+
+    public function classicTerminal(bool $enabled = true): static
+    {
+        $this->classicEnabled = $enabled;
+
+        return $this;
+    }
+
+    public function defaultMode(TerminalMode $mode = TerminalMode::Classic): static
+    {
+        $this->defaultMode = $mode;
+
+        return $this;
+    }
+
+    /** @param  array<string, mixed>  $theme */
+    public function ghosttyTheme(array $theme): static
+    {
+        $this->ghosttyTheme = $theme;
+
+        return $this;
+    }
+
+    // ========================================
     // Build & Render
     // ========================================
 
@@ -502,11 +546,33 @@ class TerminalBuilder
             $params['scripts'] = $this->scripts;
         }
 
+        // Ghostty mode params — only include non-default values
+        if ($this->ghosttyEnabled) {
+            $params['ghosttyEnabled'] = true;
+            $params['ghosttyTheme'] = $this->ghosttyTheme;
+        }
+        if (! $this->classicEnabled) {
+            $params['classicEnabled'] = false;
+        }
+        $params['defaultMode'] = $this->defaultMode->value;
+
         return $params;
     }
 
     public function render(): View|HtmlString
     {
+        if (! $this->classicEnabled && ! $this->ghosttyEnabled) {
+            throw new \InvalidArgumentException('At least one terminal mode must be enabled');
+        }
+
+        if ($this->defaultMode === TerminalMode::Ghostty && ! $this->ghosttyEnabled) {
+            throw new \InvalidArgumentException('Cannot set default mode to Ghostty when Ghostty is disabled');
+        }
+
+        if ($this->defaultMode === TerminalMode::Classic && ! $this->classicEnabled) {
+            throw new \InvalidArgumentException('Cannot set default mode to Classic when Classic is disabled');
+        }
+
         $params = $this->getParameters();
         $key = $this->key;
 

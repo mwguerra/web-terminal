@@ -3,14 +3,9 @@
     class="relative"
     style="height: {{ $height }}; min-height: 200px;"
 >
-    {{-- Toggle Pill (floating above both terminals) --}}
-    <div class="absolute top-3 left-1/2 -translate-x-1/2 z-30">
-        @include('web-terminal::partials.toggle-pill')
-    </div>
-
     {{-- Classic Terminal --}}
     <div x-show="activeMode === 'classic'" x-cloak class="h-full">
-        @livewire('web-terminal', $classicParams, key('classic-terminal'))
+        @livewire('web-terminal', array_merge($classicParams, ['hasModePill' => true]), key('classic-terminal'))
     </div>
 
     {{-- Ghostty Terminal --}}
@@ -19,6 +14,7 @@
             'height' => $height,
             'title' => $title,
             'showWindowControls' => $showWindowControls,
+            'hasModePill' => true,
         ]), key('ghostty-terminal'))
     </div>
 </div>

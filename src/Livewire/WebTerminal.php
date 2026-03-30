@@ -144,6 +144,11 @@ class WebTerminal extends Component
     public bool $showWindowControls = true;
 
     /**
+     * Whether to show the Classic/Ghostty mode toggle pill in the header.
+     */
+    public bool $hasModePill = false;
+
+    /**
      * Get the connection type for display.
      */
     public function getConnectionType(): string
@@ -471,6 +476,7 @@ class WebTerminal extends Component
         bool $startConnected = false,
         ?string $title = null,
         bool $showWindowControls = true,
+        bool $hasModePill = false,
         ?bool $loggingEnabled = null,
         ?bool $logConnections = null,
         ?bool $logCommands = null,
@@ -556,6 +562,7 @@ class WebTerminal extends Component
         // Set UI configuration
         $this->startConnected = $startConnected;
         $this->showWindowControls = $showWindowControls;
+        $this->hasModePill = $hasModePill;
 
         if ($title !== null) {
             $this->title = $title;

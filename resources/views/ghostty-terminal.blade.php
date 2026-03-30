@@ -170,16 +170,20 @@
     {{-- Header Bar --}}
     <div class="flex items-center px-4 py-3 bg-slate-200/80 dark:bg-black/30 border-b border-slate-300 dark:border-white/5 shrink-0">
         @if($showWindowControls)
-        <div class="flex gap-2">
+        <div class="flex gap-2 shrink-0">
             <span class="w-3 h-3 rounded-full bg-[#ff5f56] hover:opacity-80 transition-opacity"></span>
             <span class="w-3 h-3 rounded-full bg-[#ffbd2e] hover:opacity-80 transition-opacity"></span>
             <span class="w-3 h-3 rounded-full bg-[#27c93f] hover:opacity-80 transition-opacity"></span>
         </div>
         @endif
-        <div class="flex-1 text-center text-xs font-medium text-slate-500 dark:text-white/50 tracking-wide">{{ $title }}</div>
+        <div class="flex-1 min-w-0 ml-3 text-xs font-medium text-slate-500 dark:text-white/50 tracking-wide truncate">{{ $title }}</div>
 
         {{-- Header Actions --}}
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
+            @if($hasModePill)
+            @include('web-terminal::partials.toggle-pill')
+            @endif
+
             {{-- Scripts Dropdown --}}
             @if(!empty($scripts))
             <div class="relative" x-data="{ showScriptsDropdown: false }">

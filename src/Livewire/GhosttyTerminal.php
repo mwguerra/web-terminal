@@ -16,6 +16,7 @@ class GhosttyTerminal extends Component
     public string $height = '400px';
     public string $title = 'Terminal';
     public bool $showWindowControls = true;
+    public bool $hasModePill = false;
 
     #[Locked]
     public array $ghosttyTheme = [];
@@ -35,6 +36,7 @@ class GhosttyTerminal extends Component
         string $title = 'Terminal',
         array $ghosttyTheme = [],
         bool $showWindowControls = true,
+        bool $hasModePill = false,
         array $scripts = [],
     ): void {
         $this->connectionConfig = $connectionConfig;
@@ -42,6 +44,7 @@ class GhosttyTerminal extends Component
         $this->title = $title;
         $this->ghosttyTheme = $ghosttyTheme;
         $this->showWindowControls = $showWindowControls;
+        $this->hasModePill = $hasModePill;
         $this->scripts = $scripts;
         $this->componentId = 'ghostty-' . Str::random(8);
     }

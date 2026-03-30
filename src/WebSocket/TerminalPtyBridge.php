@@ -61,11 +61,16 @@ class TerminalPtyBridge
             'XDEBUG_MODE' => 'off',
         ]);
 
+        $cwd = $this->config->workingDirectory;
+        if ($cwd !== null && ! is_dir($cwd)) {
+            $cwd = config('web-terminal.ghostty.working_directory') ?? getcwd();
+        }
+
         $this->process = proc_open(
             $shell,
             $descriptors,
             $this->pipes,
-            $this->config->workingDirectory,
+            $cwd,
             $env
         );
 

@@ -231,6 +231,7 @@ return [
         'websocket_url' => env('WEB_TERMINAL_WEBSOCKET_URL'),
         'ssl_cert' => env('WEB_TERMINAL_SSL_CERT'),
         'ssl_key' => env('WEB_TERMINAL_SSL_KEY'),
+        'working_directory' => env('WEB_TERMINAL_GHOSTTY_CWD'),
         'pty_grace_period' => 30,
         'max_session_lifetime' => 3600,
         'signed_url_ttl' => 300,

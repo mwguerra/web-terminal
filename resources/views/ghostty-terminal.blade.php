@@ -8,6 +8,8 @@
         ws: null,
         terminal: null,
         fitAddon: null,
+        dataDisposable: null,
+        resizeDisposable: null,
 
         async initGhostty() {
             try {
@@ -29,12 +31,7 @@
                 this.terminal.loadAddon(this.fitAddon);
                 this.terminal.open(this.$refs.ghosttyContainer);
                 this.fitAddon.fit();
-
-                window.addEventListener('resize', () => {
-                    if (this.fitAddon) {
-                        this.fitAddon.fit();
-                    }
-                });
+                this.fitAddon.observeResize();
             } catch (e) {
                 console.error('[GhosttyTerminal] Failed to load ghostty-web module:', e);
             }
@@ -71,13 +68,16 @@
                 };
 
                 if (this.terminal) {
-                    this.terminal.onData((data) => {
+                    if (this.dataDisposable) this.dataDisposable.dispose();
+                    if (this.resizeDisposable) this.resizeDisposable.dispose();
+
+                    this.dataDisposable = this.terminal.onData((data) => {
                         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                             this.ws.send(data);
                         }
                     });
 
-                    this.terminal.onResize(({ cols, rows }) => {
+                    this.resizeDisposable = this.terminal.onResize(({ cols, rows }) => {
                         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                             this.ws.send(JSON.stringify({ type: 'resize', cols, rows }));
                         }
@@ -324,6 +324,7 @@
     {{-- Ghostty Terminal Container --}}
     <div
         x-ref="ghosttyContainer"
+        wire:ignore
         class="flex-1 overflow-hidden"
         style="background: #1a1a2e;"
     ></div>

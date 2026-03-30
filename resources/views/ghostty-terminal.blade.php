@@ -50,6 +50,13 @@
 
                 this.ws.onopen = () => {
                     $wire.connect();
+                    if (this.terminal) {
+                        this.ws.send(JSON.stringify({
+                            type: 'resize',
+                            cols: this.terminal.cols,
+                            rows: this.terminal.rows,
+                        }));
+                    }
                 };
 
                 this.ws.onmessage = (event) => {

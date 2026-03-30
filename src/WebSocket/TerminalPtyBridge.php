@@ -154,18 +154,37 @@ class TerminalPtyBridge
 
     public function resize(int $cols, int $rows): void
     {
+        if ($cols <= 0 || $rows <= 0) {
+            return;
+        }
+
         if ($this->sshShell !== null) {
             $this->sshShell->setWindowSize($cols, $rows);
             return;
         }
 
-        if ($this->process !== null && $this->isRunning()) {
-            $status = proc_get_status($this->process);
-            if ($status['pid'] > 0) {
-                // Send SIGWINCH to the process group
-                posix_kill(-$status['pid'], SIGWINCH);
-            }
+        if ($this->process === null || ! $this->isRunning()) {
+            return;
         }
+
+        $status = proc_get_status($this->process);
+        $pid = $status['pid'] ?? 0;
+
+        if ($pid <= 0) {
+            return;
+        }
+
+        // Resize the PTY via the child's TTY device
+        // /proc/<pid>/fd/0 is a symlink to the PTY slave device
+        $ttyLink = "/proc/{$pid}/fd/0";
+        $ttyDevice = @readlink($ttyLink);
+
+        if ($ttyDevice !== false && str_starts_with($ttyDevice, '/dev/pts/')) {
+            @exec("stty -F " . escapeshellarg($ttyDevice) . " rows {$rows} cols {$cols} 2>/dev/null");
+        }
+
+        // Send SIGWINCH to the process group so apps (vim, htop) re-read size
+        posix_kill(-$pid, SIGWINCH);
     }
 
     public function isRunning(): bool

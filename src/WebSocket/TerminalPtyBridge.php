@@ -67,7 +67,7 @@ class TerminalPtyBridge
         }
 
         $this->process = proc_open(
-            $shell,
+            "setsid {$shell} -il",
             $descriptors,
             $this->pipes,
             $cwd,

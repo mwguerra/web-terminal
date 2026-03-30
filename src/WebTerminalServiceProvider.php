@@ -67,6 +67,7 @@ class WebTerminalServiceProvider extends ServiceProvider
 
         Livewire::component('web-terminal', WebTerminal::class);
         Livewire::component('ghostty-terminal', \MWGuerra\WebTerminal\Livewire\GhosttyTerminal::class);
+        Livewire::component('terminal-container', \MWGuerra\WebTerminal\Livewire\TerminalContainer::class);
 
         Route::post('terminal/ws-token', [
             \MWGuerra\WebTerminal\Http\Controllers\TerminalWebSocketController::class,

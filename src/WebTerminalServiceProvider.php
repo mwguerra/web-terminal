@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MWGuerra\WebTerminal;
 
 use Filament\Support\Assets\Css;
+use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -100,9 +101,15 @@ class WebTerminalServiceProvider extends ServiceProvider
     {
         // Only register assets when Filament is installed
         if (class_exists(FilamentAsset::class)) {
-            FilamentAsset::register([
+            $assets = [
                 Css::make('web-terminal', __DIR__.'/../resources/dist/web-terminal.css'),
-            ], 'mwguerra/web-terminal');
+            ];
+
+            if (config('web-terminal.ghostty.enabled', false) && file_exists(__DIR__.'/../resources/dist/ghostty-terminal.js')) {
+                $assets[] = Js::make('ghostty-terminal', __DIR__.'/../resources/dist/ghostty-terminal.js');
+            }
+
+            FilamentAsset::register($assets, 'mwguerra/web-terminal');
         }
     }
 }

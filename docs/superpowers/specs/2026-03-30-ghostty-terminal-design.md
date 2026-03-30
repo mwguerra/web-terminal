@@ -449,7 +449,8 @@ src/
     Controllers/
       TerminalWebSocketController.php  # Token generation endpoint (POST)
   Console/
-    TerminalServeCommand.php       # php artisan terminal:serve
+    Commands/
+      TerminalServeCommand.php     # php artisan terminal:serve
 resources/
   views/
     ghostty-terminal.blade.php     # Ghostty terminal view

@@ -36,7 +36,8 @@
         "pestphp/pest-plugin-laravel": "^3.0"
     },
     "suggest": {
-        "filament/filament": "Required for Filament admin panel integration (^5.0)"
+        "filament/filament": "Required for Filament admin panel integration (^5.0)",
+        "cboden/ratchet": "Required for Ghostty terminal mode - WebSocket PTY bridge (^0.4)"
     },
     "autoload": {
         "psr-4": {

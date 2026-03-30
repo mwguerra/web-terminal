@@ -209,4 +209,33 @@ return [
         // Example: TenantResolver::class (must implement __invoke)
         'tenant_resolver' => null,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ghostty Terminal Mode
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the ghostty-web terminal mode. This mode provides a
+    | full interactive PTY shell via WebSocket, using the ghostty-web WASM
+    | terminal emulator. Requires cboden/ratchet to be installed.
+    |
+    | See: docs/superpowers/specs/2026-03-30-ghostty-terminal-design.md
+    |
+    */
+
+    'ghostty' => [
+        'enabled' => env('WEB_TERMINAL_GHOSTTY_ENABLED', false),
+        'websocket_provider' => 'ratchet',
+        'ratchet_host' => env('WEB_TERMINAL_RATCHET_HOST', '127.0.0.1'),
+        'ratchet_port' => env('WEB_TERMINAL_RATCHET_PORT', 8090),
+        'pty_grace_period' => 30,
+        'max_session_lifetime' => 3600,
+        'signed_url_ttl' => 300,
+        'allowed_origins' => [env('APP_URL', 'http://localhost')],
+        'theme' => [
+            'background' => '#1a1b26',
+            'foreground' => '#a9b1d6',
+            'fontSize' => 14,
+        ],
+    ],
 ];

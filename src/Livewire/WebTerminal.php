@@ -149,6 +149,11 @@ class WebTerminal extends Component
     public bool $hasModePill = false;
 
     /**
+     * Whether auto-connect mode is enabled (hides connect/disconnect button).
+     */
+    public bool $autoConnect = false;
+
+    /**
      * Get the connection type for display.
      */
     public function getConnectionType(): string
@@ -477,6 +482,7 @@ class WebTerminal extends Component
         ?string $title = null,
         bool $showWindowControls = true,
         bool $hasModePill = false,
+        bool $autoConnect = false,
         ?bool $loggingEnabled = null,
         ?bool $logConnections = null,
         ?bool $logCommands = null,
@@ -563,6 +569,7 @@ class WebTerminal extends Component
         $this->startConnected = $startConnected;
         $this->showWindowControls = $showWindowControls;
         $this->hasModePill = $hasModePill;
+        $this->autoConnect = $autoConnect;
 
         if ($title !== null) {
             $this->title = $title;

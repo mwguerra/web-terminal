@@ -155,9 +155,14 @@
         init() {
             window.addEventListener('beforeunload', this.destroy.bind(this));
 
+            const autoConnect = @json($autoConnect);
+
             const observer = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting && !this.terminal) {
                     this.initGhostty();
+                    if (autoConnect) {
+                        this.$nextTick(() => this.connect());
+                    }
                     observer.disconnect();
                 } else if (entries[0].isIntersecting && this.fitAddon) {
                     this.fitAddon.fit();
@@ -280,6 +285,7 @@
             </button>
 
             {{-- Connect/Disconnect Button --}}
+            @if(!$autoConnect)
             <button
                 type="button"
                 @click="handleToggle()"
@@ -299,6 +305,7 @@
                 <span x-show="!isConnected">Connect</span>
                 <span x-show="isConnected">Disconnect</span>
             </button>
+            @endif
         </div>
     </div>
 

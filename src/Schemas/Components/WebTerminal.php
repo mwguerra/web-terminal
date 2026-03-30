@@ -65,6 +65,8 @@ class WebTerminal extends Livewire
 
     protected bool|Closure $startConnected = false;
 
+    protected bool|Closure $autoConnect = false;
+
     protected string|Closure $title = 'Terminal';
 
     protected bool|Closure $showWindowControls = true;
@@ -175,7 +177,8 @@ class WebTerminal extends Livewire
             'historyLimit' => $this->getHistoryLimit(),
             'maxOutputLines' => $this->getMaxOutputLines(),
             'height' => $this->getHeight(),
-            'startConnected' => $this->getStartConnected(),
+            'startConnected' => $this->getStartConnected() || $this->getAutoConnect(),
+            'autoConnect' => $this->getAutoConnect(),
             'title' => $this->getTitle(),
             'showWindowControls' => $this->getShowWindowControls(),
             'loggingEnabled' => $this->getLoggingEnabled(),
@@ -197,6 +200,7 @@ class WebTerminal extends Livewire
                     'connectionConfig' => $config,
                     'ghosttyTheme' => $this->getGhosttyTheme(),
                     'scripts' => $this->getScripts(),
+                    'autoConnect' => $this->getAutoConnect(),
                 ],
                 'defaultMode' => $this->defaultMode->value,
                 'height' => $this->getHeight(),
@@ -214,6 +218,7 @@ class WebTerminal extends Livewire
                 'ghosttyTheme' => $this->getGhosttyTheme(),
                 'showWindowControls' => $this->getShowWindowControls(),
                 'scripts' => $this->getScripts(),
+                'autoConnect' => $this->getAutoConnect(),
             ];
         }
 
@@ -815,6 +820,27 @@ class WebTerminal extends Livewire
     public function getStartConnected(): bool
     {
         return $this->evaluate($this->startConnected);
+    }
+
+    /**
+     * Enable auto-connect mode.
+     *
+     * When enabled, the terminal connects automatically on load and hides
+     * the connect/disconnect button. The connection persists for the session.
+     */
+    public function autoConnect(bool|Closure $autoConnect = true): static
+    {
+        $this->autoConnect = $autoConnect;
+
+        return $this;
+    }
+
+    /**
+     * Get whether auto-connect is enabled.
+     */
+    public function getAutoConnect(): bool
+    {
+        return $this->evaluate($this->autoConnect);
     }
 
     /**

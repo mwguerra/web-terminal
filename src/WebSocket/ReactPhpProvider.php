@@ -39,7 +39,26 @@ class ReactPhpProvider implements WebSocketProviderInterface
         );
 
         $loop = Loop::get();
-        $socket = new SocketServer("{$host}:{$port}", [], $loop);
+
+        $sslCert = $config['ssl_cert'] ?? null;
+        $sslKey = $config['ssl_key'] ?? null;
+        $context = [];
+
+        if ($sslCert && $sslKey && file_exists($sslCert) && file_exists($sslKey)) {
+            $uri = "tls://{$host}:{$port}";
+            $context = [
+                'tls' => [
+                    'local_cert' => $sslCert,
+                    'local_pk' => $sslKey,
+                    'allow_self_signed' => true,
+                    'verify_peer' => false,
+                ],
+            ];
+        } else {
+            $uri = "{$host}:{$port}";
+        }
+
+        $socket = new SocketServer($uri, $context, $loop);
 
         $socket->on('connection', function (\React\Socket\ConnectionInterface $conn) use ($server) {
             $server->handleConnection($conn);

@@ -36,12 +36,12 @@ This was initially planned to use Reverb as the primary provider. After analysis
 
 3. **Latency and overhead.** Even if workarounds existed (e.g., sending keystrokes via Livewire HTTP and output via Reverb), the added latency would make the terminal unusable for interactive work (vim, htop, tab completion).
 
-**Ratchet (cboden/ratchet)** is the correct tool because:
-- It provides raw bidirectional WebSocket connections (exactly what PTY streaming needs)
-- It's ReactPHP-based, so it runs as a persistent PHP process with an event loop
-- It's the most mature PHP WebSocket library
-- It runs as an Artisan command (`terminal:serve`), so it has full Laravel app access for auth, config, and credential retrieval
-- It's a `suggest` dependency (not `require`), so it only needs to be installed when ghostty mode is used
+**ReactPHP + ratchet/rfc6455** is the correct tool because:
+- ReactPHP (`react/socket` + `react/event-loop`) provides raw bidirectional socket connections with an event loop
+- `ratchet/rfc6455` is the low-level WebSocket protocol parser (RFC 6455 compliant) without Ratchet's HTTP layer or Symfony dependencies
+- Together they give us a lightweight WebSocket server with no Symfony version conflicts (Ratchet's full package `cboden/ratchet` is incompatible with Symfony 7/8 used by Laravel 12/13)
+- Runs as an Artisan command (`terminal:serve`), so it has full Laravel app access for auth, config, and credential retrieval
+- These are `suggest` dependencies (not `require`), so they only need to be installed when ghostty mode is used
 
 **Future Reverb support:** If Laravel Reverb ever adds raw WebSocket channel support (beyond pub/sub), it could be added as a provider behind the existing `WebSocketProviderInterface`. The interface is designed for this extensibility.
 
@@ -469,17 +469,19 @@ config/
 
 **Required (when ghostty mode enabled):**
 - `ghostty-web` npm package (v0.4.0+) — xterm.js API-compatible terminal emulator
-- `cboden/ratchet` composer package — PHP WebSocket server (added to `suggest` in `composer.json`, not `require`, since it's only needed when ghostty mode is enabled)
+- `react/socket`, `react/event-loop`, `ratchet/rfc6455` composer packages — ReactPHP WebSocket server (added to `suggest` in `composer.json`, not `require`, since they're only needed when ghostty mode is enabled)
 
 **Composer setup:**
 ```json
 {
     "suggest": {
-        "cboden/ratchet": "Required for Ghostty terminal mode (WebSocket PTY bridge)"
+        "react/socket": "Required for Ghostty terminal mode (WebSocket server)",
+        "react/event-loop": "Required for Ghostty terminal mode (event loop)",
+        "ratchet/rfc6455": "Required for Ghostty terminal mode (WebSocket protocol)"
     }
 }
 ```
 
-Runtime check: if ghostty mode is enabled but Ratchet is not installed, throw `RuntimeException` with install instructions.
+Runtime check: if ghostty mode is enabled but ReactPHP is not installed, throw `RuntimeException` with install instructions.
 
 **Note:** ghostty-web is a drop-in xterm.js replacement. It exports `Terminal`, `FitAddon`, `init()` and uses the same `ITerminalOptions` interface. The `FitAddon` handles auto-resize, and `term.buffer.active` provides scrollback buffer access for copy operations. Required API surface: `init()`, `new Terminal(options)`, `term.open(el)`, `term.write(data)`, `term.onData(cb)`, `term.onResize(cb)`, `term.dispose()`, `FitAddon.fit()`, `FitAddon.observeResize()`, `term.buffer.active`.

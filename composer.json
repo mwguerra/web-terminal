@@ -33,11 +33,16 @@
         "nunomaduro/collision": "^8.4",
         "orchestra/testbench": "^10.0",
         "pestphp/pest": "^3.0",
-        "pestphp/pest-plugin-laravel": "^3.0"
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "ratchet/rfc6455": "^0.4.0",
+        "react/event-loop": "^1.6",
+        "react/socket": "^1.17"
     },
     "suggest": {
         "filament/filament": "Required for Filament admin panel integration (^5.0)",
-        "cboden/ratchet": "Required for Ghostty terminal mode - WebSocket PTY bridge (^0.4)"
+        "react/socket": "Required for Ghostty terminal mode - WebSocket server (^1.17)",
+        "react/event-loop": "Required for Ghostty terminal mode - event loop (^1.6)",
+        "ratchet/rfc6455": "Required for Ghostty terminal mode - WebSocket protocol (^0.4)"
     },
     "autoload": {
         "psr-4": {

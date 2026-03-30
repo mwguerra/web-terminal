@@ -11,17 +11,21 @@
 
         async initGhostty() {
             try {
-                const module = await import('/vendor/web-terminal/ghostty-terminal.js');
-                const { Terminal, FitAddon } = module;
+                if (typeof GhosttyWeb === 'undefined') {
+                    console.error('[GhosttyTerminal] GhosttyWeb not loaded. Ensure ghostty-terminal.js is included.');
+                    return;
+                }
 
-                this.terminal = new Terminal({
+                await GhosttyWeb.init();
+
+                this.terminal = new GhosttyWeb.Terminal({
                     cursorBlink: true,
                     fontSize: 13,
                     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                     theme: {{ json_encode($ghosttyTheme) }},
                 });
 
-                this.fitAddon = new FitAddon();
+                this.fitAddon = new GhosttyWeb.FitAddon();
                 this.terminal.loadAddon(this.fitAddon);
                 this.terminal.open(this.$refs.ghosttyContainer);
                 this.fitAddon.fit();
@@ -142,8 +146,17 @@
         },
 
         init() {
-            this.initGhostty();
             window.addEventListener('beforeunload', this.destroy.bind(this));
+
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && !this.terminal) {
+                    this.initGhostty();
+                    observer.disconnect();
+                } else if (entries[0].isIntersecting && this.fitAddon) {
+                    this.fitAddon.fit();
+                }
+            });
+            observer.observe(this.$el);
         },
     }"
 >

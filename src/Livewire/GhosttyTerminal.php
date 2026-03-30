@@ -64,12 +64,21 @@ class GhosttyTerminal extends Component
         ]);
 
         $token = app('encrypter')->encrypt($payload);
-        $host = config('web-terminal.ghostty.ratchet_host', '127.0.0.1');
-        $port = config('web-terminal.ghostty.ratchet_port', 8090);
+        $encodedToken = urlencode($token);
+
+        $wsUrl = config('web-terminal.ghostty.websocket_url');
+        if ($wsUrl) {
+            $separator = str_contains($wsUrl, '?') ? '&' : '?';
+            $url = "{$wsUrl}{$separator}token={$encodedToken}";
+        } else {
+            $host = config('web-terminal.ghostty.ratchet_host', '127.0.0.1');
+            $port = config('web-terminal.ghostty.ratchet_port', 8090);
+            $url = "ws://{$host}:{$port}?token={$encodedToken}";
+        }
 
         return [
             'token' => $token,
-            'url' => "ws://{$host}:{$port}?token=" . urlencode($token),
+            'url' => $url,
             'sessionId' => $sessionId,
         ];
     }

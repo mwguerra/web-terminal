@@ -2,7 +2,7 @@
     "private": true,
     "scripts": {
         "build": "npx @tailwindcss/cli -i resources/css/index.css -o resources/dist/web-terminal.css --minify",
-        "build:js": "npx esbuild resources/js/ghostty-terminal.js --bundle --minify --format=iife --outfile=resources/dist/ghostty-terminal.js",
+        "build:js": "npx esbuild resources/js/ghostty-terminal.js --bundle --minify --format=iife --global-name=GhosttyWeb --outfile=resources/dist/ghostty-terminal.js",
         "build:all": "npm run build && npm run build:js"
     },
     "dependencies": {

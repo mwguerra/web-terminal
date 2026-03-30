@@ -10,6 +10,92 @@ Add a new terminal mode to the web-terminal package using [ghostty-web](https://
 
 Both modes can be enabled simultaneously with an in-header toggle pill for switching between them. Each mode maintains an independent session.
 
+## Design Decisions
+
+This section documents the reasoning behind each major decision. Kept up to date as the design evolves.
+
+### Why ghostty-web instead of xterm.js?
+
+[ghostty-web](https://github.com/coder/ghostty-web) is a WASM-compiled terminal emulator built from the same parser as the native [Ghostty](https://github.com/ghostty-org/ghostty) desktop terminal. It is designed as a **drop-in xterm.js replacement** — same API (`Terminal`, `FitAddon`, `ITerminalOptions`, `term.buffer`, etc.) but with a battle-tested WASM parser instead of a JavaScript reimplementation.
+
+Advantages over xterm.js:
+- Proper grapheme handling for complex scripts (Devanagari, Arabic)
+- Full XTPUSHSGR/XTPOPSGR support
+- Zero runtime dependencies, ~400KB WASM bundle
+- MIT licensed, backed by Coder (enterprise backing)
+
+Since the API is xterm.js-compatible, switching to xterm.js in the future would be a one-line import change.
+
+### Why Ratchet and not Laravel Reverb?
+
+This was initially planned to use Reverb as the primary provider. After analysis, Reverb was dropped because **it is architecturally incompatible with PTY streaming**:
+
+1. **Reverb is pub/sub, not bidirectional streaming.** Reverb implements Laravel Broadcasting — it pushes server events to subscribed clients. Clients **cannot send arbitrary data back** through a Reverb channel. The client-to-server path in Reverb goes through HTTP (Livewire/AJAX), not the WebSocket.
+
+2. **PTY I/O requires raw bidirectional byte streaming.** Every keystroke must travel client→server instantly, and every byte of PTY output must stream server→client in real-time. This is a persistent, bidirectional byte pipe — fundamentally different from pub/sub events.
+
+3. **Latency and overhead.** Even if workarounds existed (e.g., sending keystrokes via Livewire HTTP and output via Reverb), the added latency would make the terminal unusable for interactive work (vim, htop, tab completion).
+
+**Ratchet (cboden/ratchet)** is the correct tool because:
+- It provides raw bidirectional WebSocket connections (exactly what PTY streaming needs)
+- It's ReactPHP-based, so it runs as a persistent PHP process with an event loop
+- It's the most mature PHP WebSocket library
+- It runs as an Artisan command (`terminal:serve`), so it has full Laravel app access for auth, config, and credential retrieval
+- It's a `suggest` dependency (not `require`), so it only needs to be installed when ghostty mode is used
+
+**Future Reverb support:** If Laravel Reverb ever adds raw WebSocket channel support (beyond pub/sub), it could be added as a provider behind the existing `WebSocketProviderInterface`. The interface is designed for this extensibility.
+
+### Why dual-component architecture instead of extending WebTerminal?
+
+The existing `WebTerminal.php` is already 944 lines. Adding ghostty mode logic (WebSocket lifecycle, PTY bridge, different rendering) would push it well past 1,200 lines with deeply intertwined concerns. The dual-component approach:
+
+- **Clean separation**: Each terminal mode owns its own state, lifecycle, and view
+- **No risk to existing functionality**: `WebTerminal.php` is unchanged — zero regression risk
+- **Independent testing**: Each component can be tested in isolation
+- **Optional loading**: If only classic mode is used, `GhosttyTerminal` is never loaded
+
+The `TerminalContainer` wrapper is intentionally thin — it only manages the toggle pill via Alpine.js.
+
+### Why Alpine.js-only toggle (not Livewire state)?
+
+Nested Livewire components have known edge cases with state hydration, `@entangle`, and DOM diffing. The toggle pill switches which terminal is visible — this is purely a UI concern that doesn't need server state.
+
+Using Alpine.js `x-show` means:
+- **Instant switching** — no server roundtrip
+- **Both components stay mounted** — sessions persist independently
+- **No hydration conflicts** — Livewire manages each nested component independently
+- Each nested component gets a unique `wire:key` to prevent DOM diffing issues
+
+### Why Ratchet as `suggest` and not `require`?
+
+Most web-terminal users only need the Classic (Livewire) terminal. Requiring Ratchet for everyone would add an unnecessary dependency. By using `suggest`:
+- Classic-only installations stay lightweight
+- Ghostty mode users install Ratchet explicitly (`composer require cboden/ratchet`)
+- A clear `RuntimeException` tells developers what to install if they enable ghostty without Ratchet
+
+### Why encrypted tokens instead of signed URLs?
+
+The initial design used `URL::signedRoute()` but the Ratchet server runs on a separate port, so Laravel's signed URL validation (which checks the route) doesn't work directly. Instead, we use Laravel's `Encrypter` to create self-contained tokens:
+
+- Token contains: user ID, session ID, expiry timestamp
+- Encrypted with the app key — only the same Laravel app can decrypt
+- Validated entirely within the Ratchet process (which boots the Laravel app)
+- SSH credentials are stored in Laravel Cache (not in the token) and retrieved by session ID
+
+### Why a `useGhosttyTerminal` Gate?
+
+Ghostty mode provides full PTY shell access — no command whitelisting, no sanitization, no rate limiting. In admin panels where some users shouldn't have unrestricted shell access, the Gate provides fine-grained control. If the Gate is not defined, it defaults to allowing authenticated users (same as Classic mode's connect).
+
+### Why independent sessions per mode?
+
+When switching between Classic and Ghostty:
+- **Independent**: Each mode has its own connection. Switching doesn't kill the other. Both can be connected simultaneously. This matches how developers use multiple terminal tabs.
+- The alternative (shared connection, destructive switch) would lose context on every switch — frustrating for users.
+
+### Why FitAddon for resize?
+
+The Classic terminal has a fixed CSS height. Ghostty mode uses ghostty-web's `FitAddon` to auto-resize the terminal to fill its container, and sends resize events (`{ type: 'resize', cols, rows }`) to the PTY via WebSocket so the shell adjusts its output formatting. This is standard for modern web terminals.
+
 ## Architecture
 
 ### Component Hierarchy

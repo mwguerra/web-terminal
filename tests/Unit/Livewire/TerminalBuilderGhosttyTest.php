@@ -91,4 +91,27 @@ describe('TerminalBuilder Ghostty Methods', function () {
             expect(fn () => $builder->render())->toThrow(\InvalidArgumentException::class);
         });
     });
+
+    describe('render routing', function () {
+        it('renders WebTerminal when only classic enabled', function () {
+            $builder = new TerminalBuilder;
+            $builder->local();
+            $html = $builder->render();
+            expect((string) $html)->toContain('secure-web-terminal');
+        });
+
+        it('renders GhosttyTerminal when only ghostty enabled', function () {
+            $builder = new TerminalBuilder;
+            $builder->local()->ghosttyTerminal()->classicTerminal(false)->defaultMode(TerminalMode::Ghostty);
+            $html = $builder->render();
+            expect((string) $html)->toContain('ghostty-web-terminal');
+        });
+
+        it('renders TerminalContainer when both enabled', function () {
+            $builder = new TerminalBuilder;
+            $builder->local()->ghosttyTerminal();
+            $html = $builder->render();
+            expect((string) $html)->toContain('activeMode');
+        });
+    });
 });

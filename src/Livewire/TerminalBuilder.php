@@ -576,14 +576,50 @@ class TerminalBuilder
         $params = $this->getParameters();
         $key = $this->key;
 
+        // Determine which component to mount
+        $connectionArray = match (true) {
+            $this->connection instanceof ConnectionConfig => $this->connection->toArray(),
+            is_array($this->connection) => $this->connection,
+            default => [],
+        };
+
+        if ($this->ghosttyEnabled && $this->classicEnabled) {
+            $component = 'terminal-container';
+            $mountParams = [
+                'classicParams' => $params,
+                'ghosttyParams' => [
+                    'connectionConfig' => $connectionArray,
+                    'ghosttyTheme' => $this->ghosttyTheme,
+                    'scripts' => $this->scripts ?? [],
+                ],
+                'defaultMode' => $this->defaultMode->value,
+                'height' => $this->height ?? '350px',
+                'title' => $this->title ?? 'Terminal',
+                'showWindowControls' => $this->showWindowControls ?? true,
+            ];
+        } elseif ($this->ghosttyEnabled) {
+            $component = 'ghostty-terminal';
+            $mountParams = [
+                'connectionConfig' => $connectionArray,
+                'height' => $this->height ?? '350px',
+                'title' => $this->title ?? 'Terminal',
+                'ghosttyTheme' => $this->ghosttyTheme,
+                'showWindowControls' => $this->showWindowControls ?? true,
+                'scripts' => $this->scripts ?? [],
+            ];
+        } else {
+            $component = 'web-terminal';
+            $mountParams = $params;
+        }
+
         if ($key !== null) {
             return new HtmlString(
-                \Livewire\Livewire::mount('web-terminal', $params, $key)->html()
+                \Livewire\Livewire::mount($component, $mountParams, $key)
             );
         }
 
         return new HtmlString(
-            \Livewire\Livewire::mount('web-terminal', $params)->html()
+            \Livewire\Livewire::mount($component, $mountParams)
         );
     }
 

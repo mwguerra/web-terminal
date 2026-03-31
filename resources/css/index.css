@@ -94,3 +94,7 @@
     width: 100% !important;
     height: 100% !important;
 }
+
+.stream-web-terminal textarea {
+    caret-color: transparent !important;
+}

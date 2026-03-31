@@ -13,7 +13,7 @@ enum TerminalMode: string
     {
         return match ($this) {
             self::Classic => 'Classic',
-            self::Ghostty => 'Ghostty',
+            self::Ghostty => 'Stream',
         };
     }
 

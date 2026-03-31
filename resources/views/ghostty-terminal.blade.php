@@ -330,7 +330,7 @@
             </div>
             <div class="flex items-center gap-2">
                 <span class="font-medium text-slate-500 dark:text-gray-400 w-24">Mode</span>
-                <span>Ghostty WebSocket PTY</span>
+                <span>Stream WebSocket PTY</span>
             </div>
             <div class="flex items-center gap-2">
                 <span class="font-medium text-slate-500 dark:text-gray-400 w-24">Component</span>

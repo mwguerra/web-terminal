@@ -212,12 +212,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Ghostty Terminal Mode
+    | Stream Terminal Mode
     |--------------------------------------------------------------------------
     |
-    | Configuration for the ghostty-web terminal mode. This mode provides a
+    | Configuration for the stream terminal mode. This mode provides a
     | full interactive PTY shell via WebSocket, using the ghostty-web WASM
-    | terminal emulator. Requires cboden/ratchet to be installed.
+    | terminal emulator.
     |
     | See: docs/superpowers/specs/2026-03-30-ghostty-terminal-design.md
     |

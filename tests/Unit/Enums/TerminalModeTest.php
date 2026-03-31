@@ -13,7 +13,7 @@ describe('TerminalMode', function () {
 
     it('returns labels', function () {
         expect(TerminalMode::Classic->label())->toBe('Classic');
-        expect(TerminalMode::Ghostty->label())->toBe('Ghostty');
+        expect(TerminalMode::Ghostty->label())->toBe('Stream');
     });
 
     it('returns descriptions', function () {
@@ -25,6 +25,6 @@ describe('TerminalMode', function () {
         $options = TerminalMode::options();
         expect($options)->toBeArray()->toHaveCount(2);
         expect($options['classic'])->toBe('Classic');
-        expect($options['ghostty'])->toBe('Ghostty');
+        expect($options['ghostty'])->toBe('Stream');
     });
 });

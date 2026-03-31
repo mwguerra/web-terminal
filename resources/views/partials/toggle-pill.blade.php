@@ -13,5 +13,5 @@
         :class="activeMode === 'ghostty'
             ? 'bg-purple-500/30 text-purple-600 dark:text-purple-300'
             : 'text-slate-400 dark:text-white/35 hover:text-slate-600 dark:hover:text-white/50'"
-    >Ghostty</button>
+    >Stream</button>
 </div>

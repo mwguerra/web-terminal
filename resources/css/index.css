@@ -84,13 +84,13 @@
     border-left-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Ghostty Terminal Mode */
-.secure-web-terminal.ghostty-mode canvas {
+/* Stream Terminal Mode */
+.secure-web-terminal.stream-mode canvas {
     width: 100% !important;
     height: 100% !important;
 }
 
-.ghostty-web-terminal canvas {
+.stream-web-terminal canvas {
     width: 100% !important;
     height: 100% !important;
 }

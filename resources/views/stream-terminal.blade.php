@@ -1,5 +1,5 @@
 <div
-    class="ghostty-web-terminal relative font-mono text-[13px] leading-tight bg-gradient-to-b from-slate-100 to-white dark:from-[#1a1a2e] dark:to-[#16213e] text-zinc-800 dark:text-zinc-200 rounded-xl overflow-hidden flex flex-col shadow-2xl ring-1 ring-slate-200 dark:ring-white/5 text-left"
+    class="stream-web-terminal relative font-mono text-[13px] leading-tight bg-gradient-to-b from-slate-100 to-white dark:from-[#1a1a2e] dark:to-[#16213e] text-zinc-800 dark:text-zinc-200 rounded-xl overflow-hidden flex flex-col shadow-2xl ring-1 ring-slate-200 dark:ring-white/5 text-left"
     style="height: {{ $height }}; min-height: 200px;"
     x-data="{
         isConnected: $wire.entangle('isConnected'),
@@ -11,29 +11,29 @@
         dataDisposable: null,
         resizeDisposable: null,
 
-        async initGhostty() {
+        async initStream() {
             try {
-                if (typeof GhosttyWeb === 'undefined') {
-                    console.error('[GhosttyTerminal] GhosttyWeb not loaded. Ensure ghostty-terminal.js is included.');
+                if (typeof StreamWeb === 'undefined') {
+                    console.error('[StreamTerminal] StreamWeb not loaded. Ensure stream-terminal.js is included.');
                     return;
                 }
 
-                await GhosttyWeb.init();
+                await StreamWeb.init();
 
-                this.terminal = new GhosttyWeb.Terminal({
+                this.terminal = new StreamWeb.Terminal({
                     cursorBlink: true,
                     fontSize: 13,
                     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                    theme: {{ json_encode($ghosttyTheme) }},
+                    theme: {{ json_encode($streamTheme) }},
                 });
 
-                this.fitAddon = new GhosttyWeb.FitAddon();
+                this.fitAddon = new StreamWeb.FitAddon();
                 this.terminal.loadAddon(this.fitAddon);
-                this.terminal.open(this.$refs.ghosttyContainer);
+                this.terminal.open(this.$refs.streamContainer);
                 this.fitAddon.fit();
                 this.fitAddon.observeResize();
             } catch (e) {
-                console.error('[GhosttyTerminal] Failed to load ghostty-web module:', e);
+                console.error('[StreamTerminal] Failed to load stream-web module:', e);
             }
         },
 
@@ -42,7 +42,7 @@
                 const result = await $wire.getWebSocketUrl();
 
                 if (result.error) {
-                    console.error('[GhosttyTerminal] Auth error:', result.error);
+                    console.error('[StreamTerminal] Auth error:', result.error);
                     return;
                 }
 
@@ -66,7 +66,7 @@
                 };
 
                 this.ws.onerror = (error) => {
-                    console.error('[GhosttyTerminal] WebSocket error:', error);
+                    console.error('[StreamTerminal] WebSocket error:', error);
                 };
 
                 this.ws.onclose = () => {
@@ -91,7 +91,7 @@
                     });
                 }
             } catch (e) {
-                console.error('[GhosttyTerminal] Connect error:', e);
+                console.error('[StreamTerminal] Connect error:', e);
             }
         },
 
@@ -127,7 +127,7 @@
                 this.copyFeedback = true;
                 setTimeout(() => { this.copyFeedback = false; }, 2000);
             } catch (e) {
-                console.error('[GhosttyTerminal] Copy failed:', e);
+                console.error('[StreamTerminal] Copy failed:', e);
             }
         },
 
@@ -159,7 +159,7 @@
 
             const observer = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting && !this.terminal) {
-                    this.initGhostty();
+                    this.initStream();
                     if (autoConnect) {
                         this.$nextTick(() => this.connect());
                     }
@@ -339,9 +339,9 @@
         </div>
     </div>
 
-    {{-- Ghostty Terminal Container --}}
+    {{-- Stream Terminal Container --}}
     <div
-        x-ref="ghosttyContainer"
+        x-ref="streamContainer"
         wire:ignore
         class="flex-1 overflow-hidden"
         style="background: #1a1a2e;"

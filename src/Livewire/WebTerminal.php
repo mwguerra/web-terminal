@@ -144,7 +144,7 @@ class WebTerminal extends Component
     public bool $showWindowControls = true;
 
     /**
-     * Whether to show the Classic/Ghostty mode toggle pill in the header.
+     * Whether to show the Classic/Stream mode toggle pill in the header.
      */
     public bool $hasModePill = false;
 

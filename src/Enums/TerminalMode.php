@@ -7,13 +7,13 @@ namespace MWGuerra\WebTerminal\Enums;
 enum TerminalMode: string
 {
     case Classic = 'classic';
-    case Ghostty = 'ghostty';
+    case Stream = 'stream';
 
     public function label(): string
     {
         return match ($this) {
             self::Classic => 'Classic',
-            self::Ghostty => 'Stream',
+            self::Stream => 'Stream',
         };
     }
 
@@ -21,7 +21,7 @@ enum TerminalMode: string
     {
         return match ($this) {
             self::Classic => 'Command-by-command terminal via Livewire',
-            self::Ghostty => 'Full interactive PTY terminal via WebSocket',
+            self::Stream => 'Full interactive PTY terminal via WebSocket',
         };
     }
 

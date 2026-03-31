@@ -1,0 +1,149 @@
+<h2>Design Section 3: UI Layout &amp; Switcher</h2>
+<p class="subtitle">Toggle pill in the header bar, between action buttons and connect/disconnect</p>
+
+<div class="section">
+  <h3>Header Bar — Classic Mode Active</h3>
+  <div class="mockup">
+    <div class="mockup-header">Terminal Header (Dark Theme)</div>
+    <div class="mockup-body" style="background: #1a1a2e; padding: 12px 16px; font-family: monospace; font-size: 13px;">
+      <div style="display: flex; align-items: center; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 16px; border-radius: 12px 12px 0 0; margin: -12px -16px 0 -16px;">
+        <!-- Window controls -->
+        <div style="display: flex; gap: 6px;">
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></span>
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></span>
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></span>
+        </div>
+        <!-- Title -->
+        <div style="flex: 1; text-align: center; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500; letter-spacing: 0.5px;">Terminal</div>
+        <!-- Actions -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Scripts button -->
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 14px;" title="Scripts">&lt;/&gt;</div>
+          <!-- Copy button -->
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 12px;" title="Copy">&#128203;</div>
+          <!-- Info button -->
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 14px;" title="Info">&#9432;</div>
+
+          <!-- TOGGLE PILL — the new element -->
+          <div style="display: flex; border-radius: 9999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; font-size: 10px; font-weight: 600; letter-spacing: 0.3px;">
+            <div style="padding: 4px 10px; background: rgba(99, 102, 241, 0.3); color: #a5b4fc; border-radius: 9999px;">Classic</div>
+            <div style="padding: 4px 10px; color: rgba(255,255,255,0.35); cursor: pointer;">Ghostty</div>
+          </div>
+
+          <!-- Connect button -->
+          <div style="display: flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); font-size: 11px; font-weight: 500;">
+            <span style="font-size: 10px;">&#10005;</span> Disconnect
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Header Bar — Ghostty Mode Active</h3>
+  <div class="mockup">
+    <div class="mockup-header">Terminal Header (Dark Theme)</div>
+    <div class="mockup-body" style="background: #1a1a2e; padding: 12px 16px; font-family: monospace; font-size: 13px;">
+      <div style="display: flex; align-items: center; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 16px; border-radius: 12px 12px 0 0; margin: -12px -16px 0 -16px;">
+        <!-- Window controls -->
+        <div style="display: flex; gap: 6px;">
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></span>
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></span>
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></span>
+        </div>
+        <!-- Title -->
+        <div style="flex: 1; text-align: center; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500; letter-spacing: 0.5px;">Terminal</div>
+        <!-- Actions -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Scripts button -->
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 14px;" title="Scripts">&lt;/&gt;</div>
+          <!-- Copy (full terminal) button -->
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 12px;" title="Copy terminal">&#128203;</div>
+          <!-- Info button -->
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 14px;" title="Info">&#9432;</div>
+
+          <!-- TOGGLE PILL — Ghostty active -->
+          <div style="display: flex; border-radius: 9999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; font-size: 10px; font-weight: 600; letter-spacing: 0.3px;">
+            <div style="padding: 4px 10px; color: rgba(255,255,255,0.35); cursor: pointer;">Classic</div>
+            <div style="padding: 4px 10px; background: rgba(168, 85, 247, 0.3); color: #c4b5fd; border-radius: 9999px;">Ghostty</div>
+          </div>
+
+          <!-- Connect button -->
+          <div style="display: flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); font-size: 11px; font-weight: 500;">
+            <span style="font-size: 10px;">&#10132;</span> Connect
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Full Terminal — Ghostty Mode (Connected)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Ghostty Terminal View</div>
+    <div class="mockup-body" style="background: #1a1b26; padding: 0; font-family: monospace; font-size: 13px; min-height: 280px; display: flex; flex-direction: column;">
+      <!-- Header (same as above with Ghostty active) -->
+      <div style="display: flex; align-items: center; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 16px; flex-shrink: 0;">
+        <div style="display: flex; gap: 6px;">
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></span>
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></span>
+          <span style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></span>
+        </div>
+        <div style="flex: 1; text-align: center; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500;">Terminal</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 14px;">&lt;/&gt;</div>
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 12px;">&#128203;</div>
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4); font-size: 14px;">&#9432;</div>
+          <div style="display: flex; border-radius: 9999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; font-size: 10px; font-weight: 600;">
+            <div style="padding: 4px 10px; color: rgba(255,255,255,0.35);">Classic</div>
+            <div style="padding: 4px 10px; background: rgba(168, 85, 247, 0.3); color: #c4b5fd; border-radius: 9999px;">Ghostty</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); font-size: 11px; font-weight: 500;">
+            <span style="font-size: 10px;">&#10005;</span> Disconnect
+          </div>
+        </div>
+      </div>
+      <!-- Ghostty canvas area — fills remaining space, no input bar -->
+      <div style="flex: 1; background: #1a1b26; padding: 12px 16px; color: #a9b1d6; line-height: 1.5; position: relative;">
+        <div style="color: #7aa2f7;">guerra@server</div>
+        <div><span style="color: #7aa2f7;">~</span> <span style="color: #9ece6a;">$</span> ls -la</div>
+        <div style="color: #a9b1d6;">total 48</div>
+        <div style="color: #a9b1d6;">drwxr-xr-x  12 guerra staff  384 Mar 30 app/</div>
+        <div style="color: #a9b1d6;">drwxr-xr-x   4 guerra staff  128 Mar 30 config/</div>
+        <div style="color: #a9b1d6;">drwxr-xr-x   3 guerra staff   96 Mar 30 database/</div>
+        <div style="color: #a9b1d6;">-rw-r--r--   1 guerra staff 1823 Mar 30 composer.json</div>
+        <div><span style="color: #7aa2f7;">~</span> <span style="color: #9ece6a;">$</span> <span style="background: #a9b1d6; color: #1a1b26; animation: blink 1s step-end infinite;">&#160;</span></div>
+        <div style="position: absolute; bottom: 8px; right: 12px; font-size: 9px; color: rgba(255,255,255,0.15); letter-spacing: 0.5px;">ghostty-web &middot; WASM</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes blink { 50% { opacity: 0; } }
+  .section { margin-bottom: 32px; }
+</style>
+
+<div class="section">
+  <h3>Key UI Decisions</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+    <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 16px;">
+      <div style="font-weight: 600; color: #a5b4fc; margin-bottom: 8px;">Classic Mode = Indigo</div>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.6);">Active pill background uses indigo/blue tones to match the existing info panel styling</div>
+    </div>
+    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px; padding: 16px;">
+      <div style="font-weight: 600; color: #c4b5fd; margin-bottom: 8px;">Ghostty Mode = Purple</div>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.6);">Purple distinguishes it from Classic and matches the scripts button color family</div>
+    </div>
+    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px;">
+      <div style="font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 8px;">No Input Bar in Ghostty</div>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.6);">The ghostty canvas fills from header to bottom. Input goes directly to the PTY via the canvas. No separate input element needed.</div>
+    </div>
+    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px;">
+      <div style="font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 8px;">Shared Header</div>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.6);">Both modes share the same header component. Only the content area below changes. Scripts, copy, and info buttons appear in both modes.</div>
+    </div>
+  </div>
+</div>

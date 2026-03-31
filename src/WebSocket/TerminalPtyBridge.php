@@ -63,7 +63,7 @@ class TerminalPtyBridge
 
         $cwd = $this->config->workingDirectory;
         if ($cwd !== null && ! is_dir($cwd)) {
-            $cwd = config('web-terminal.ghostty.working_directory') ?? getcwd();
+            $cwd = config('web-terminal.stream.working_directory') ?? getcwd();
         }
 
         $this->process = proc_open(

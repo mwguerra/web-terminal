@@ -8,13 +8,13 @@
         @livewire('web-terminal', array_merge($classicParams, ['hasModePill' => true]), key('classic-terminal'))
     </div>
 
-    {{-- Ghostty Terminal --}}
-    <div x-show="activeMode === 'ghostty'" x-cloak class="h-full">
-        @livewire('ghostty-terminal', array_merge($ghosttyParams, [
+    {{-- Stream Terminal --}}
+    <div x-show="activeMode === 'stream'" x-cloak class="h-full">
+        @livewire('stream-terminal', array_merge($streamParams, [
             'height' => $height,
             'title' => $title,
             'showWindowControls' => $showWindowControls,
             'hasModePill' => true,
-        ]), key('ghostty-terminal'))
+        ]), key('stream-terminal'))
     </div>
 </div>

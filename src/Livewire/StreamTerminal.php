@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
-class GhosttyTerminal extends Component
+class StreamTerminal extends Component
 {
     public bool $isConnected = false;
     public string $height = '400px';
@@ -20,7 +20,7 @@ class GhosttyTerminal extends Component
     public bool $autoConnect = false;
 
     #[Locked]
-    public array $ghosttyTheme = [];
+    public array $streamTheme = [];
 
     #[Locked]
     public array $connectionConfig = [];
@@ -35,7 +35,7 @@ class GhosttyTerminal extends Component
         array $connectionConfig = [],
         string $height = '400px',
         string $title = 'Terminal',
-        array $ghosttyTheme = [],
+        array $streamTheme = [],
         bool $showWindowControls = true,
         bool $hasModePill = false,
         bool $autoConnect = false,
@@ -44,22 +44,22 @@ class GhosttyTerminal extends Component
         $this->connectionConfig = $connectionConfig;
         $this->height = $height;
         $this->title = $title;
-        $this->ghosttyTheme = $ghosttyTheme;
+        $this->streamTheme = $streamTheme;
         $this->showWindowControls = $showWindowControls;
         $this->hasModePill = $hasModePill;
         $this->autoConnect = $autoConnect;
         $this->scripts = $scripts;
-        $this->componentId = 'ghostty-' . Str::random(8);
+        $this->componentId = 'stream-' . Str::random(8);
     }
 
     public function getWebSocketUrl(): array
     {
-        if (Gate::has('useGhosttyTerminal') && ! Gate::allows('useGhosttyTerminal')) {
+        if (Gate::has('useStreamTerminal') && ! Gate::allows('useStreamTerminal')) {
             return ['error' => 'Unauthorized'];
         }
 
         $sessionId = Str::uuid()->toString();
-        $ttl = config('web-terminal.ghostty.signed_url_ttl', 300);
+        $ttl = config('web-terminal.stream.signed_url_ttl', 300);
 
         Cache::put("terminal-pty:{$sessionId}", $this->connectionConfig, $ttl);
 
@@ -72,13 +72,13 @@ class GhosttyTerminal extends Component
         $token = app('encrypter')->encrypt($payload);
         $encodedToken = urlencode($token);
 
-        $wsUrl = config('web-terminal.ghostty.websocket_url');
+        $wsUrl = config('web-terminal.stream.websocket_url');
         if ($wsUrl) {
             $separator = str_contains($wsUrl, '?') ? '&' : '?';
             $url = "{$wsUrl}{$separator}token={$encodedToken}";
         } else {
-            $host = config('web-terminal.ghostty.ratchet_host', '127.0.0.1');
-            $port = config('web-terminal.ghostty.ratchet_port', 8090);
+            $host = config('web-terminal.stream.ratchet_host', '127.0.0.1');
+            $port = config('web-terminal.stream.ratchet_port', 8090);
             $url = "ws://{$host}:{$port}?token={$encodedToken}";
         }
 
@@ -112,6 +112,6 @@ class GhosttyTerminal extends Component
 
     public function render()
     {
-        return view('web-terminal::ghostty-terminal');
+        return view('web-terminal::stream-terminal');
     }
 }

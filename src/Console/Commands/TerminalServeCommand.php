@@ -19,7 +19,7 @@ class TerminalServeCommand extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Start the WebSocket server for Ghostty terminal mode';
+    protected $description = 'Start the WebSocket server for Stream terminal mode';
 
     /**
      * Execute the console command.
@@ -32,8 +32,8 @@ class TerminalServeCommand extends Command
             return self::FAILURE;
         }
 
-        $host = $this->option('host') ?? config('web-terminal.ghostty.ratchet_host', '127.0.0.1');
-        $port = $this->option('port') ?? config('web-terminal.ghostty.ratchet_port', 8090);
+        $host = $this->option('host') ?? config('web-terminal.stream.ratchet_host', '127.0.0.1');
+        $port = $this->option('port') ?? config('web-terminal.stream.ratchet_port', 8090);
 
         $this->info("Starting WebSocket server on {$host}:{$port}...");
         $this->info('Press Ctrl+C to stop.');

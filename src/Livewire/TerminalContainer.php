@@ -13,7 +13,7 @@ class TerminalContainer extends Component
     public array $classicParams = [];
 
     #[Locked]
-    public array $ghosttyParams = [];
+    public array $streamParams = [];
 
     #[Locked]
     public string $defaultMode = 'classic';
@@ -24,14 +24,14 @@ class TerminalContainer extends Component
 
     public function mount(
         array $classicParams = [],
-        array $ghosttyParams = [],
+        array $streamParams = [],
         string $defaultMode = 'classic',
         string $height = '400px',
         string $title = 'Terminal',
         bool $showWindowControls = true,
     ): void {
         $this->classicParams = $classicParams;
-        $this->ghosttyParams = $ghosttyParams;
+        $this->streamParams = $streamParams;
         $this->defaultMode = $defaultMode;
         $this->height = $height;
         $this->title = $title;

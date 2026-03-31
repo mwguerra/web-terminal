@@ -3,25 +3,25 @@
 declare(strict_types=1);
 
 use Livewire\Livewire;
-use MWGuerra\WebTerminal\Livewire\GhosttyTerminal;
+use MWGuerra\WebTerminal\Livewire\StreamTerminal;
 
-describe('GhosttyTerminal', function () {
+describe('StreamTerminal', function () {
     it('can be mounted with default parameters', function () {
-        Livewire::test(GhosttyTerminal::class, [
+        Livewire::test(StreamTerminal::class, [
             'connectionConfig' => ['type' => 'local'],
             'height' => '400px',
             'title' => 'Test Terminal',
-            'ghosttyTheme' => [],
+            'streamTheme' => [],
             'showWindowControls' => true,
         ])->assertStatus(200);
     });
 
     it('has locked connection config', function () {
-        $component = Livewire::test(GhosttyTerminal::class, [
+        $component = Livewire::test(StreamTerminal::class, [
             'connectionConfig' => ['type' => 'local'],
             'height' => '400px',
             'title' => 'Test Terminal',
-            'ghosttyTheme' => [],
+            'streamTheme' => [],
             'showWindowControls' => true,
         ]);
 
@@ -29,13 +29,13 @@ describe('GhosttyTerminal', function () {
         expect($component->get('isConnected'))->toBeFalse();
     });
 
-    it('renders the ghostty terminal view', function () {
-        Livewire::test(GhosttyTerminal::class, [
+    it('renders the stream terminal view', function () {
+        Livewire::test(StreamTerminal::class, [
             'connectionConfig' => ['type' => 'local'],
             'height' => '400px',
             'title' => 'Test Terminal',
-            'ghosttyTheme' => [],
+            'streamTheme' => [],
             'showWindowControls' => true,
-        ])->assertViewIs('web-terminal::ghostty-terminal');
+        ])->assertViewIs('web-terminal::stream-terminal');
     });
 });

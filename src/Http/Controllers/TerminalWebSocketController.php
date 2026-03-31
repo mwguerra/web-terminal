@@ -16,7 +16,7 @@ class TerminalWebSocketController extends Controller
     {
         $sessionId = Str::uuid()->toString();
         $config = $request->input('connectionConfig', []);
-        $ttl = config('web-terminal.ghostty.signed_url_ttl', 300);
+        $ttl = config('web-terminal.stream.signed_url_ttl', 300);
 
         // Store connection config in cache (one-time retrieval)
         Cache::put("terminal-pty:{$sessionId}", $config, $ttl);
@@ -29,8 +29,8 @@ class TerminalWebSocketController extends Controller
 
         $token = app('encrypter')->encrypt($payload);
 
-        $host = config('web-terminal.ghostty.ratchet_host', '127.0.0.1');
-        $port = config('web-terminal.ghostty.ratchet_port', 8090);
+        $host = config('web-terminal.stream.ratchet_host', '127.0.0.1');
+        $port = config('web-terminal.stream.ratchet_port', 8090);
         $protocol = $request->isSecure() ? 'wss' : 'ws';
 
         return response()->json([

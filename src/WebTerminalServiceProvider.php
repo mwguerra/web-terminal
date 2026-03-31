@@ -67,7 +67,7 @@ class WebTerminalServiceProvider extends ServiceProvider
         $this->registerAssets();
 
         Livewire::component('web-terminal', WebTerminal::class);
-        Livewire::component('ghostty-terminal', \MWGuerra\WebTerminal\Livewire\GhosttyTerminal::class);
+        Livewire::component('stream-terminal', \MWGuerra\WebTerminal\Livewire\StreamTerminal::class);
         Livewire::component('terminal-container', \MWGuerra\WebTerminal\Livewire\TerminalContainer::class);
 
         Route::post('terminal/ws-token', [
@@ -105,8 +105,8 @@ class WebTerminalServiceProvider extends ServiceProvider
                 Css::make('web-terminal', __DIR__.'/../resources/dist/web-terminal.css'),
             ];
 
-            if (config('web-terminal.ghostty.enabled', false) && file_exists(__DIR__.'/../resources/dist/ghostty-terminal.js')) {
-                $assets[] = Js::make('ghostty-terminal', __DIR__.'/../resources/dist/ghostty-terminal.js');
+            if (config('web-terminal.stream.enabled', false) && file_exists(__DIR__.'/../resources/dist/stream-terminal.js')) {
+                $assets[] = Js::make('stream-terminal', __DIR__.'/../resources/dist/stream-terminal.js');
             }
 
             FilamentAsset::register($assets, 'mwguerra/web-terminal');

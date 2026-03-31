@@ -8,7 +8,7 @@ use MWGuerra\WebTerminal\Data\ConnectionConfig;
 use MWGuerra\WebTerminal\Data\Script;
 use MWGuerra\WebTerminal\Enums\TerminalMode;
 use MWGuerra\WebTerminal\Enums\TerminalPermission;
-use MWGuerra\WebTerminal\Livewire\GhosttyTerminal as GhosttyTerminalComponent;
+use MWGuerra\WebTerminal\Livewire\StreamTerminal as StreamTerminalComponent;
 use MWGuerra\WebTerminal\Livewire\TerminalContainer as TerminalContainerComponent;
 use MWGuerra\WebTerminal\Livewire\WebTerminal as WebTerminalComponent;
 
@@ -93,14 +93,14 @@ class WebTerminal extends Livewire
     /** @var array<int, Script|array<string, mixed>>|Closure */
     protected array|Closure $scripts = [];
 
-    // Ghostty terminal mode
-    protected bool|Closure $ghosttyEnabled = false;
+    // Stream terminal mode
+    protected bool|Closure $streamEnabled = false;
 
     protected bool|Closure $classicEnabled = true;
 
     protected TerminalMode $defaultMode = TerminalMode::Classic;
 
-    protected array|Closure $ghosttyTheme = [];
+    protected array|Closure $streamTheme = [];
 
     public static function make(Closure|string|null $component = null, Closure|array $data = []): static
     {
@@ -119,15 +119,15 @@ class WebTerminal extends Livewire
      */
     protected function resolveComponentClass(): string
     {
-        $ghosttyEnabled = $this->getGhosttyEnabled();
+        $streamEnabled = $this->getStreamEnabled();
         $classicEnabled = $this->getClassicEnabled();
 
-        if ($ghosttyEnabled && $classicEnabled) {
+        if ($streamEnabled && $classicEnabled) {
             return TerminalContainerComponent::class;
         }
 
-        if ($ghosttyEnabled) {
-            return GhosttyTerminalComponent::class;
+        if ($streamEnabled) {
+            return StreamTerminalComponent::class;
         }
 
         return WebTerminalComponent::class;
@@ -148,7 +148,7 @@ class WebTerminal extends Livewire
      */
     public function getComponentProperties(): array
     {
-        $ghosttyEnabled = $this->getGhosttyEnabled();
+        $streamEnabled = $this->getStreamEnabled();
         $classicEnabled = $this->getClassicEnabled();
         $config = $this->getConnectionConfig();
 
@@ -193,12 +193,12 @@ class WebTerminal extends Livewire
         ], fn ($value) => $value !== null);
 
         // Dual-mode: TerminalContainer
-        if ($ghosttyEnabled && $classicEnabled) {
+        if ($streamEnabled && $classicEnabled) {
             return [
                 'classicParams' => $classicParams,
-                'ghosttyParams' => [
+                'streamParams' => [
                     'connectionConfig' => $config,
-                    'ghosttyTheme' => $this->getGhosttyTheme(),
+                    'streamTheme' => $this->getStreamTheme(),
                     'scripts' => $this->getScripts(),
                     'autoConnect' => $this->getAutoConnect(),
                 ],
@@ -209,13 +209,13 @@ class WebTerminal extends Livewire
             ];
         }
 
-        // Ghostty-only
-        if ($ghosttyEnabled) {
+        // Stream-only
+        if ($streamEnabled) {
             return [
                 'connectionConfig' => $config,
                 'height' => $this->getHeight(),
                 'title' => $this->getTitle(),
-                'ghosttyTheme' => $this->getGhosttyTheme(),
+                'streamTheme' => $this->getStreamTheme(),
                 'showWindowControls' => $this->getShowWindowControls(),
                 'scripts' => $this->getScripts(),
                 'autoConnect' => $this->getAutoConnect(),
@@ -1277,19 +1277,19 @@ class WebTerminal extends Livewire
         }, $scripts));
     }
     // ========================================
-    // Ghostty Terminal Mode Configuration
+    // Stream Terminal Mode Configuration
     // ========================================
 
-    public function ghosttyTerminal(bool|Closure $enabled = true): static
+    public function streamTerminal(bool|Closure $enabled = true): static
     {
-        $this->ghosttyEnabled = $enabled;
+        $this->streamEnabled = $enabled;
 
         return $this;
     }
 
-    public function getGhosttyEnabled(): bool
+    public function getStreamEnabled(): bool
     {
-        return $this->evaluate($this->ghosttyEnabled);
+        return $this->evaluate($this->streamEnabled);
     }
 
     public function classicTerminal(bool|Closure $enabled = true): static
@@ -1316,16 +1316,16 @@ class WebTerminal extends Livewire
         return $this->defaultMode;
     }
 
-    public function ghosttyTheme(array|Closure $theme): static
+    public function streamTheme(array|Closure $theme): static
     {
-        $this->ghosttyTheme = $theme;
+        $this->streamTheme = $theme;
 
         return $this;
     }
 
-    public function getGhosttyTheme(): array
+    public function getStreamTheme(): array
     {
-        return $this->evaluate($this->ghosttyTheme);
+        return $this->evaluate($this->streamTheme);
     }
 }
 

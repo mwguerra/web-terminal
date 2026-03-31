@@ -90,15 +90,15 @@ class TerminalBuilder
     /** @var array<mixed> */
     protected array $scripts = [];
 
-    // Ghostty mode
-    protected bool $ghosttyEnabled = false;
+    // Stream mode
+    protected bool $streamEnabled = false;
 
     protected bool $classicEnabled = true;
 
     protected TerminalMode $defaultMode = TerminalMode::Classic;
 
     /** @var array<string, mixed> */
-    protected array $ghosttyTheme = [];
+    protected array $streamTheme = [];
 
     // ========================================
     // Connection Configuration
@@ -445,12 +445,12 @@ class TerminalBuilder
     }
 
     // ========================================
-    // Ghostty Configuration
+    // Stream Configuration
     // ========================================
 
-    public function ghosttyTerminal(bool $enabled = true): static
+    public function streamTerminal(bool $enabled = true): static
     {
-        $this->ghosttyEnabled = $enabled;
+        $this->streamEnabled = $enabled;
 
         return $this;
     }
@@ -470,9 +470,9 @@ class TerminalBuilder
     }
 
     /** @param  array<string, mixed>  $theme */
-    public function ghosttyTheme(array $theme): static
+    public function streamTheme(array $theme): static
     {
-        $this->ghosttyTheme = $theme;
+        $this->streamTheme = $theme;
 
         return $this;
     }
@@ -546,10 +546,10 @@ class TerminalBuilder
             $params['scripts'] = $this->scripts;
         }
 
-        // Ghostty mode params — only include non-default values
-        if ($this->ghosttyEnabled) {
-            $params['ghosttyEnabled'] = true;
-            $params['ghosttyTheme'] = $this->ghosttyTheme;
+        // Stream mode params — only include non-default values
+        if ($this->streamEnabled) {
+            $params['streamEnabled'] = true;
+            $params['streamTheme'] = $this->streamTheme;
         }
         if (! $this->classicEnabled) {
             $params['classicEnabled'] = false;
@@ -561,12 +561,12 @@ class TerminalBuilder
 
     public function render(): View|HtmlString
     {
-        if (! $this->classicEnabled && ! $this->ghosttyEnabled) {
+        if (! $this->classicEnabled && ! $this->streamEnabled) {
             throw new \InvalidArgumentException('At least one terminal mode must be enabled');
         }
 
-        if ($this->defaultMode === TerminalMode::Ghostty && ! $this->ghosttyEnabled) {
-            throw new \InvalidArgumentException('Cannot set default mode to Ghostty when Ghostty is disabled');
+        if ($this->defaultMode === TerminalMode::Stream && ! $this->streamEnabled) {
+            throw new \InvalidArgumentException('Cannot set default mode to Stream when Stream is disabled');
         }
 
         if ($this->defaultMode === TerminalMode::Classic && ! $this->classicEnabled) {
@@ -583,13 +583,13 @@ class TerminalBuilder
             default => [],
         };
 
-        if ($this->ghosttyEnabled && $this->classicEnabled) {
+        if ($this->streamEnabled && $this->classicEnabled) {
             $component = 'terminal-container';
             $mountParams = [
                 'classicParams' => $params,
-                'ghosttyParams' => [
+                'streamParams' => [
                     'connectionConfig' => $connectionArray,
-                    'ghosttyTheme' => $this->ghosttyTheme,
+                    'streamTheme' => $this->streamTheme,
                     'scripts' => $this->scripts ?? [],
                 ],
                 'defaultMode' => $this->defaultMode->value,
@@ -597,13 +597,13 @@ class TerminalBuilder
                 'title' => $this->title ?? 'Terminal',
                 'showWindowControls' => $this->showWindowControls ?? true,
             ];
-        } elseif ($this->ghosttyEnabled) {
-            $component = 'ghostty-terminal';
+        } elseif ($this->streamEnabled) {
+            $component = 'stream-terminal';
             $mountParams = [
                 'connectionConfig' => $connectionArray,
                 'height' => $this->height ?? '350px',
                 'title' => $this->title ?? 'Terminal',
-                'ghosttyTheme' => $this->ghosttyTheme,
+                'streamTheme' => $this->streamTheme,
                 'showWindowControls' => $this->showWindowControls ?? true,
                 'scripts' => $this->scripts ?? [],
             ];

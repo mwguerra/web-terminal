@@ -18,7 +18,7 @@ class ReactPhpProvider implements WebSocketProviderInterface
 
     public function start(string $host, int $port): void
     {
-        $config = $this->app['config']->get('web-terminal.ghostty', []);
+        $config = $this->app['config']->get('web-terminal.stream', []);
 
         $registry = new PtySessionRegistry(
             $this->app->storagePath('web-terminal')

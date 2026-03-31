@@ -9,7 +9,7 @@ describe('TerminalContainer', function () {
     it('can be mounted with both modes', function () {
         Livewire::test(TerminalContainer::class, [
             'classicParams' => ['allowedCommands' => ['ls']],
-            'ghosttyParams' => ['ghosttyTheme' => []],
+            'streamParams' => ['streamTheme' => []],
             'defaultMode' => 'classic',
             'height' => '400px',
             'title' => 'Terminal',
@@ -20,7 +20,7 @@ describe('TerminalContainer', function () {
     it('renders the container view', function () {
         Livewire::test(TerminalContainer::class, [
             'classicParams' => ['allowedCommands' => ['ls']],
-            'ghosttyParams' => ['ghosttyTheme' => []],
+            'streamParams' => ['streamTheme' => []],
             'defaultMode' => 'classic',
             'height' => '400px',
             'title' => 'Terminal',
@@ -31,11 +31,11 @@ describe('TerminalContainer', function () {
     it('passes default mode to view', function () {
         Livewire::test(TerminalContainer::class, [
             'classicParams' => [],
-            'ghosttyParams' => [],
-            'defaultMode' => 'ghostty',
+            'streamParams' => [],
+            'defaultMode' => 'stream',
             'height' => '400px',
             'title' => 'Terminal',
             'showWindowControls' => true,
-        ])->assertSet('defaultMode', 'ghostty');
+        ])->assertSet('defaultMode', 'stream');
     });
 });

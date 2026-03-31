@@ -4,16 +4,17 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 
 ## Version Compatibility
 
-| Version | Filament | Laravel | Livewire | PHP  |
-|---------|----------|---------|----------|------|
-| 2.x     | 5.x     | 12.x   | 4.x     | 8.2+ |
-| 1.x     | 4.x     | 11.x   | 3.x     | 8.2+ |
+| Version | Filament | Laravel    | Livewire | PHP  |
+|---------|----------|------------|----------|------|
+| 2.x     | 5.x     | 12.x–13.x | 4.x     | 8.3+ |
+| 1.x     | 4.x     | 11.x      | 3.x     | 8.2+ |
 
 ## Features
 
 - **Connection types**: Local shell execution or SSH connections to remote servers
 - **Command whitelisting**: Configurable allowlist to restrict which commands can be executed
 - **Interactive mode**: PTY/tmux sessions for artisan tinker, reverb:start, queue:work, and other interactive/long-running commands
+- **Stream mode**: Full interactive PTY shell via WebSocket with ghostty-web canvas rendering — supports vim, htop, and other full-screen TUI apps
 - **Enum-based permissions**: `TerminalPermission` enum for clean, declarative permission control
 - **Scripts**: Define reusable command sequences with progress tracking and one-click execution
 - **Comprehensive logging**: Audit trail for connections, commands, outputs, and errors
@@ -28,8 +29,8 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 12.x
+- PHP 8.3+
+- Laravel 12.x or 13.x
 - Filament 5.x
 - Livewire 4.x
 
@@ -49,7 +50,7 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 
 ## Installation
 
-### For Filament 5 / Laravel 12 (latest)
+### For Filament 5 / Laravel 12–13 (latest)
 
 ```bash
 composer require mwguerra/web-terminal:"^2.0"
@@ -68,7 +69,7 @@ composer require mwguerra/web-terminal:"^2.0"
 ```
 
 Key changes in v2.x:
-- Requires Laravel 12.x, Filament 5.x, and Livewire 4.x
+- Requires Laravel 12.x or 13.x, Filament 5.x, and Livewire 4.x
 - If you published Blade views, update any `@entangle('prop')` to `$wire.entangle('prop')` in your custom views
 
 ### Interactive Setup
@@ -816,6 +817,143 @@ WebTerminal::make()->connection($config)
 | `title(string)` | Title shown in terminal header bar | `'Terminal'` |
 | `windowControls(bool)` | Show macOS-style window control dots | `true` |
 | `startConnected(bool)` | Auto-connect on page load | `false` |
+
+### Stream Mode
+
+Stream mode provides a full interactive PTY shell via WebSocket, powered by [ghostty-web](https://github.com/coder/ghostty-web). Unlike the Classic terminal (which executes one command at a time via Livewire), Stream mode gives you a real shell session with canvas-rendered output — supporting full-screen TUI apps like `vim`, `htop`, `nano`, and more.
+
+#### Enabling Stream Mode
+
+```php
+// Stream-only terminal (no Classic mode)
+WebTerminal::make()
+    ->local()
+    ->streamTerminal()
+    ->classicTerminal(false)
+    ->streamTheme([
+        'background' => '#1a1b26',
+        'foreground' => '#a9b1d6',
+        'fontSize' => 14,
+        'fontFamily' => 'JetBrains Mono, monospace',
+    ])
+    ->height('500px')
+    ->title('Stream Terminal')
+
+// Dual-mode terminal (toggle between Classic and Stream)
+WebTerminal::make()
+    ->local()
+    ->allowAllCommands()
+    ->streamTerminal()
+    ->streamTheme([
+        'background' => '#1a1b26',
+        'foreground' => '#a9b1d6',
+    ])
+    ->height('500px')
+```
+
+In dual-mode, a toggle pill in the header bar lets users switch between Classic and Stream modes.
+
+#### Stream Mode Settings
+
+| Method | Description | Default |
+|--------|-------------|---------|
+| `streamTerminal(bool)` | Enable Stream terminal mode | `false` |
+| `classicTerminal(bool)` | Enable Classic terminal mode | `true` |
+| `streamTheme(array)` | Theme for the Stream terminal canvas | See config |
+| `autoConnect(bool)` | Auto-connect and hide connect/disconnect button | `false` |
+
+Stream mode always auto-connects when the terminal becomes visible. The connect/disconnect button is never shown in Stream mode.
+
+#### WebSocket Server
+
+Stream mode requires a WebSocket server to bridge the browser to a PTY shell process. Start it with:
+
+```bash
+php artisan terminal:serve
+```
+
+Options:
+
+```bash
+# Custom host and port
+php artisan terminal:serve --host=0.0.0.0 --port=8090
+
+# Default: 127.0.0.1:8090
+```
+
+The server uses React PHP for the event loop and Ratchet RFC6455 for WebSocket protocol handling.
+
+#### SSL/WSS Configuration
+
+When your app is served over HTTPS, the WebSocket connection must use WSS. Configure SSL in your `.env`:
+
+```env
+# Enable stream mode
+WEB_TERMINAL_STREAM_ENABLED=true
+
+# WSS URL (use when behind HTTPS)
+WEB_TERMINAL_WEBSOCKET_URL=wss://your-domain.test:8090
+
+# SSL certificate and key (for direct WSS, not proxied)
+WEB_TERMINAL_SSL_CERT=/path/to/cert.crt
+WEB_TERMINAL_SSL_KEY=/path/to/cert.key
+```
+
+Or configure in `config/web-terminal.php`:
+
+```php
+'stream' => [
+    'enabled' => env('WEB_TERMINAL_STREAM_ENABLED', false),
+    'ratchet_host' => env('WEB_TERMINAL_RATCHET_HOST', '127.0.0.1'),
+    'ratchet_port' => env('WEB_TERMINAL_RATCHET_PORT', 8090),
+    'websocket_url' => env('WEB_TERMINAL_WEBSOCKET_URL'),
+    'ssl_cert' => env('WEB_TERMINAL_SSL_CERT'),
+    'ssl_key' => env('WEB_TERMINAL_SSL_KEY'),
+    'working_directory' => env('WEB_TERMINAL_STREAM_CWD'),
+    // ...
+],
+```
+
+When `ssl_cert` and `ssl_key` are set, the WebSocket server automatically serves over TLS.
+
+#### Required Dependencies
+
+Stream mode requires additional packages (suggested, not required by default):
+
+```bash
+composer require react/socket react/event-loop ratchet/rfc6455
+```
+
+#### Running in Production
+
+For production, run the WebSocket server as a supervised process:
+
+```bash
+# Using Supervisor
+[program:terminal-serve]
+command=php /path/to/artisan terminal:serve --host=0.0.0.0 --port=8090
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/log/terminal-serve.log
+```
+
+Or with systemd:
+
+```ini
+[Unit]
+Description=Web Terminal WebSocket Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/php /path/to/artisan terminal:serve --host=0.0.0.0 --port=8090
+Restart=always
+User=www-data
+
+[Install]
+WantedBy=multi-user.target
+```
 
 ### Session Management
 

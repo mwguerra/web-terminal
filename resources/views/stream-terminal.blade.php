@@ -32,6 +32,14 @@
                 this.terminal.open(this.$refs.streamContainer);
                 this.fitAddon.fit();
                 this.fitAddon.observeResize();
+
+                // Hide the blinking caret on ghostty-web's hidden textarea
+                const ta = this.$refs.streamContainer.querySelector('textarea');
+                if (ta) {
+                    ta.style.setProperty('caret-color', 'transparent', 'important');
+                    ta.style.setProperty('left', '-9999px', 'important');
+                    ta.style.setProperty('top', '-9999px', 'important');
+                }
             } catch (e) {
                 console.error('[StreamTerminal] Failed to load stream-web module:', e);
             }

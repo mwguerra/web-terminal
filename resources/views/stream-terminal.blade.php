@@ -317,7 +317,7 @@
     <div
         x-ref="streamContainer"
         wire:ignore
-        class="flex-1 overflow-hidden"
+        class="relative flex-1 overflow-hidden"
         style="background: #1a1a2e;"
     ></div>
 </div>

@@ -1,6 +1,6 @@
 <div
-    class="stream-web-terminal relative font-mono text-[13px] leading-tight bg-gradient-to-b from-slate-100 to-white dark:from-[#1a1a2e] dark:to-[#16213e] text-zinc-800 dark:text-zinc-200 rounded-xl overflow-hidden flex flex-col shadow-2xl ring-1 ring-slate-200 dark:ring-white/5 text-left"
-    style="height: {{ $height }}; min-height: 200px;"
+    class="stream-web-terminal relative font-mono text-[13px] leading-tight text-zinc-800 dark:text-zinc-200 rounded-xl overflow-hidden flex flex-col shadow-2xl ring-1 ring-slate-200 dark:ring-white/5 text-left"
+    style="height: {{ $height }}; min-height: 200px; background: {{ $streamTheme['background'] ?? '#1a1a2e' }};"
     x-data="{
         isConnected: $wire.entangle('isConnected'),
         showInfoPanel: false,
@@ -336,7 +336,7 @@
     <div
         x-ref="streamContainer"
         wire:ignore
-        class="relative flex-1 overflow-hidden"
-        style="background: #1a1a2e;"
+        class="relative flex-1 overflow-hidden p-2"
+        style="background: {{ $streamTheme['background'] ?? '#1a1a2e' }};"
     ></div>
 </div>

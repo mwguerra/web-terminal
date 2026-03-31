@@ -37,24 +37,18 @@
                 const ta = this.$refs.streamContainer.querySelector('textarea');
                 if (ta) {
                     ta.style.setProperty('caret-color', 'transparent', 'important');
-
-                    // Intercept Escape and other keys that Filament/Alpine may capture,
-                    // and forward them to the terminal via WebSocket
-                    ta.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape') {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                                this.ws.send('\x1b');
-                            }
-                        }
-                    }, true);
                 }
 
-                // Also capture Escape on the container itself
-                this.$refs.streamContainer.addEventListener('keydown', (e) => {
+                // ghostty-web does not emit Escape through onData, so we
+                // intercept it on the container (where keys actually fire)
+                // and send the ESC byte directly to the WebSocket PTY
+                this.$el.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         e.stopPropagation();
+                        e.preventDefault();
+                        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                            this.ws.send('\x1b');
+                        }
                     }
                 }, true);
             } catch (e) {

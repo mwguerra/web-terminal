@@ -37,9 +37,26 @@
                 const ta = this.$refs.streamContainer.querySelector('textarea');
                 if (ta) {
                     ta.style.setProperty('caret-color', 'transparent', 'important');
-                    ta.style.setProperty('left', '-9999px', 'important');
-                    ta.style.setProperty('top', '-9999px', 'important');
+
+                    // Intercept Escape and other keys that Filament/Alpine may capture,
+                    // and forward them to the terminal via WebSocket
+                    ta.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                                this.ws.send('\x1b');
+                            }
+                        }
+                    }, true);
                 }
+
+                // Also capture Escape on the container itself
+                this.$refs.streamContainer.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        e.stopPropagation();
+                    }
+                }, true);
             } catch (e) {
                 console.error('[StreamTerminal] Failed to load stream-web module:', e);
             }

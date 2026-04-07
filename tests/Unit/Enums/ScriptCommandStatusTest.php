@@ -32,7 +32,7 @@ describe('ScriptCommandStatus', function () {
 
     it('returns correct CSS classes', function () {
         expect(ScriptCommandStatus::Pending->cssClass())->toBe('text-slate-400 dark:text-zinc-500');
-        expect(ScriptCommandStatus::Running->cssClass())->toBe('text-blue-500 animate-spin');
+        expect(ScriptCommandStatus::Running->cssClass())->toBe('text-blue-500');
         expect(ScriptCommandStatus::Success->cssClass())->toBe('text-emerald-500');
         expect(ScriptCommandStatus::Failed->cssClass())->toBe('text-red-500');
         expect(ScriptCommandStatus::Skipped->cssClass())->toBe('text-amber-500');

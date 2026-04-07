@@ -85,7 +85,7 @@ class WebTerminal extends Component
     /**
      * The command being executed in interactive mode (for logging).
      */
-    protected string $interactiveCommand = '';
+    public string $interactiveCommand = '';
 
     /**
      * Inputs sent to the interactive session, used to identify PTY echo lines
@@ -110,7 +110,7 @@ class WebTerminal extends Component
     /**
      * Timestamp when interactive command started (for execution time logging).
      */
-    protected float $interactiveStartTime = 0;
+    public float $interactiveStartTime = 0;
 
     /**
      * The terminal prompt string.
@@ -438,6 +438,11 @@ class WebTerminal extends Component
      * Whether to show terminal output in the script panel.
      */
     public bool $showScriptOutput = true;
+
+    /**
+     * Script key pending user confirmation before running.
+     */
+    public string $pendingScriptKey = '';
 
     /**
      * Whether script is waiting for user input (e.g., password prompt).
@@ -2183,6 +2188,16 @@ class WebTerminal extends Component
             }
         }
 
+        // Check if confirmation is required
+        if ($script->requiresConfirmation() && $this->pendingScriptKey !== $key) {
+            $this->pendingScriptKey = $key;
+
+            return;
+        }
+
+        // Clear any pending confirmation
+        $this->pendingScriptKey = '';
+
         // Show the script panel
         $this->showScriptPanel = true;
 
@@ -2213,6 +2228,27 @@ class WebTerminal extends Component
 
         // Start executing commands
         $this->executeNextScriptCommand();
+    }
+
+    /**
+     * Confirm and run the pending script.
+     */
+    public function confirmPendingScript(): void
+    {
+        if ($this->pendingScriptKey === '') {
+            return;
+        }
+
+        $key = $this->pendingScriptKey;
+        $this->runScript($key);
+    }
+
+    /**
+     * Cancel the pending script confirmation.
+     */
+    public function cancelPendingScript(): void
+    {
+        $this->pendingScriptKey = '';
     }
 
     /**

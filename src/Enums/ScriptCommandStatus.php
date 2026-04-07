@@ -50,7 +50,7 @@ enum ScriptCommandStatus: string
     {
         return match ($this) {
             self::Pending => 'text-slate-400 dark:text-zinc-500',
-            self::Running => 'text-blue-500 animate-spin',
+            self::Running => 'text-blue-500',
             self::Success => 'text-emerald-500',
             self::Failed => 'text-red-500',
             self::Skipped => 'text-amber-500',

@@ -822,7 +822,7 @@ WebTerminal::make()->connection($config)
 
 > **Note**
 >
-> Stream mode is being extracted into a dedicated package, [`mwguerra/web-terminal-stream`](https://github.com/mwguerra/web-terminal-stream), where its development will continue (WebSocket/PTY streaming, ghostty-web rendering, frameless chrome, and terminal tiling). Stream mode remains available and supported in this package for the current major version; the extraction only affects where new Stream features land.
+> Stream mode will remain part of this package, but it is in the process of becoming its own plugin (on a date to be defined). Splitting it out will let us provide better support and ease maintenance for both packages.
 
 Stream mode provides a full interactive PTY shell via WebSocket, powered by [ghostty-web](https://github.com/coder/ghostty-web). Unlike the Classic terminal (which executes one command at a time via Livewire), Stream mode gives you a real shell session with canvas-rendered output — supporting full-screen TUI apps like `vim`, `htop`, `nano`, and more.
 

@@ -2,6 +2,20 @@
 
 A secure web terminal package for Laravel with Filament integration. Execute allowed commands on local systems or SSH servers.
 
+> **Stream mode is moving to its own plugin**
+>
+> After weighing how differently the two modes evolve, I decided to split them. Stream mode — the full PTY shell over WebSocket with canvas rendering — is being extracted into a dedicated plugin, `mwguerra/web-terminal-stream`.
+>
+> What that means in practice:
+>
+> - **Stream mode is frozen here.** It still works and remains documented, but it will receive no further updates in this package.
+> - **It will be removed in a future release.** Once the standalone plugin launches, Stream mode will be dropped from a future version/tag of `web-terminal`. That removal will be announced in the [CHANGELOG](CHANGELOG.md) with a migration path, and it will land on a major version — nothing will disappear from under you mid-2.x.
+> - **Classic mode becomes the single focus.** From then on, this package does one thing: a secure, whitelisted, auditable command terminal. No mode switching, no dual code paths.
+>
+> The two modes solve genuinely different problems and carry very different security and maintenance profiles. Separating them lets each get the attention and release cadence it deserves, instead of one holding the other back.
+>
+> **If you use Stream mode today:** nothing breaks right now. Stay on your current version and watch for the standalone plugin's release before upgrading past the removal.
+
 ## Version Compatibility
 
 | Version | Filament | Laravel    | Livewire | PHP  |
@@ -14,7 +28,7 @@ A secure web terminal package for Laravel with Filament integration. Execute all
 - **Connection types**: Local shell execution or SSH connections to remote servers
 - **Command whitelisting**: Configurable allowlist to restrict which commands can be executed
 - **Interactive mode**: PTY/tmux sessions for artisan tinker, reverb:start, queue:work, and other interactive/long-running commands
-- **Stream mode**: Full interactive PTY shell via WebSocket with ghostty-web canvas rendering — supports vim, htop, and other full-screen TUI apps
+- **Stream mode** *(frozen — moving to its own plugin, see note above)*: Full interactive PTY shell via WebSocket with ghostty-web canvas rendering — supports vim, htop, and other full-screen TUI apps
 - **Enum-based permissions**: `TerminalPermission` enum for clean, declarative permission control
 - **Scripts**: Define reusable command sequences with progress tracking and one-click execution
 - **Comprehensive logging**: Audit trail for connections, commands, outputs, and errors
@@ -822,7 +836,7 @@ WebTerminal::make()->connection($config)
 
 > **Note**
 >
-> Stream mode will remain part of this package, but it is in the process of becoming its own plugin (on a date to be defined). Splitting it out will let us provide better support and ease maintenance for both packages.
+> Stream mode is frozen and will be removed from this package in a future release, once it ships as the standalone `mwguerra/web-terminal-stream` plugin. It still works and is documented below, but it receives no further updates here. See the note at the [top of this README](#web-terminal) for the full rationale and what it means for existing users.
 
 Stream mode provides a full interactive PTY shell via WebSocket, powered by [ghostty-web](https://github.com/coder/ghostty-web). Unlike the Classic terminal (which executes one command at a time via Livewire), Stream mode gives you a real shell session with canvas-rendered output — supporting full-screen TUI apps like `vim`, `htop`, `nano`, and more.
 

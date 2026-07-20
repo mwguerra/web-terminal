@@ -19,6 +19,19 @@ coverage.txt
 /test-results/
 /tests/screenshots/
 /tests/e2e/
+/.playwright-mcp/
 playwright.config.js
 test-scripts.mjs
 debug-csrf.mjs
+
+# Debug screenshots dropped at the project root
+/*.png
+
+# Agent tooling scratch
+/.superpowers/
+/.claude/
+*.pid
+
+# Editors
+/.idea/
+/.vscode/

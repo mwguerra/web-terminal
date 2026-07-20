@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+# Exclude development-only files from the Composer dist tarball.
+# Runtime paths (src, config, database, lang, resources, stubs) always ship.
+/tests              export-ignore
+/docs               export-ignore
+/scripts            export-ignore
+/phpunit.xml        export-ignore
+/package.json       export-ignore
+/package-lock.json  export-ignore
+/CONTRIBUTING.md    export-ignore
+/.gitignore         export-ignore
+/.gitattributes     export-ignore

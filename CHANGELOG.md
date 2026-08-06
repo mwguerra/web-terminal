@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v2.3.1] - 2026-08-06
+
+### Added
+
+- `SECURITY.md` security policy with private vulnerability reporting instructions
+- Dependabot configuration for npm, Composer, and GitHub Actions updates with a 7-day cooldown
+
 ## [v2.2.0] - 2026-03-18
 
 ### Added
